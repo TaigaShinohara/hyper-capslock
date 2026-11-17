@@ -11,6 +11,7 @@
 ; ドキュメント:
 ;   https://www.autohotkey.com/docs/v2/KeyList.htm
 ;   https://www.autohotkey.com/docs/v2/lib/KeyWait.htm
+;   https://www.autohotkey.com/docs/v2/lib/InputHook.htm
 ;   https://www.autohotkey.com/docs/v2/FAQ.htm
 
 InstallKeybdHook
@@ -92,12 +93,29 @@ if (kanataHit != "") {
 }
 #HotIf
 
+; CapsLock 以外のキーが押されたら、離したときの Esc は出さない。
+; 割り当てたキーだけでなく、Space や、第2弾を入れる前の H も対象。
+; V はキーをアプリへ届ける。L0 は文字を溜めない。I1 はスクリプト自身の Send を数えない。
+; https://www.autohotkey.com/docs/v2/lib/InputHook.htm
+NoteOtherKey(ih, vk, sc) {
+    global hyperUsed
+    if (sc = 0x3A || vk = 0x14)
+        return
+    hyperUsed := true
+}
+
 HyperCapsDown() {
     global hyperDown, hyperUsed, TapMs, HoldCapMs
     hyperDown := true
     hyperUsed := false
+    watch := InputHook("V L0 I1")
+    watch.OnKeyDown := NoteOtherKey
+    watch.NotifyNonText := true
+    watch.KeyOpt("{All}", "N")
+    watch.Start()
     start := A_TickCount
     released := KeyWait("sc03A", "T" . (HoldCapMs // 1000))
+    watch.Stop()
     hyperDown := false
     if (released && !hyperUsed && (A_TickCount - start) < TapMs)
         Send "{Esc}"

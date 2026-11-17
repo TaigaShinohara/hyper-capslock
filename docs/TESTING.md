@@ -8,6 +8,7 @@
 - 生成中に CapsLock を単押ししても、生成は止まらない。
 - 変更の提案が残っているときに、CapsLock、Hyper+C、Hyper+T、Hyper+1 を押しても、全部承認にも全部却下にもならない。
 - CapsLock を1秒押して、何も押さずに離しても、Office もスタートメニューも開かない。
+- CapsLock を押したまま 200ミリ秒以内に、割り当てていない Space（macOS では H は隠すことがあるので Space）を押して離しても、Esc は出ない。第2弾を入れる前の H でも、Esc は出ない。
 
 ## 1. macOS・US 配列
 

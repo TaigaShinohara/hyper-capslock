@@ -33,8 +33,11 @@
 )
 
 (defalias
-  ;; 200ms 未満で離すと Esc。
-  ;; それより長く押すか、押したまま別のキーを押すと hyper に入る。
+  ;; 200ms 未満で、ほかのキーを押さずに離すと Esc。
+  ;; tap-hold-press は、別のキーを押した時点で長押し側になる。
+  ;; そのとき Esc は重ねて出ない。Space のように一覧に無いキーも、
+  ;; process-unmapped-keys があるので同じ。右 Alt だけは対象外
+  ;; （Kanata の AltGr の既知の不具合のため）。
   ;; 200 はこちらの選択で、OS が決めた秒数ではない。
   cap (tap-hold-press $tap-ms $hold-ms esc (layer-while-held hyper))
 )
