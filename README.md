@@ -1,68 +1,45 @@
 # ハイパーCapsLock
 
-> **CapsLockを、AI開発のコックピットにする**
+CapsLock を、AI に指示して開発するときの起点にする。
 
-CapsLock を捨てるな。最強のキーに変えろ。
+単押しは `Esc`。長押ししているあいだだけ、次に押すキーの意味が変わる（これを Hyper と呼ぶ）。
+速くしたいのはタイピングではなく、**AIチャット ⇄ エディタ ⇄ プレビュー** の往復。
 
-単押しは `Esc`、長押しは `Hyper`（`Ctrl + Alt + Shift + Cmd / Win` 同時押し）。
-左手小指の真下に、既存ショートカットと一切衝突しない「自分専用のボタン」が生まれます。
+主に使うエディタは Cursor。VS Code は副次。macOS と Windows、US 配列と JIS 配列の両方を対象にする。
+Raycast の Hyper Key 機能は使わない。
 
-バイブコーディング — コードを手書きするのではなく、AI に指示して・確認して・直させる開発 — に特化したキー配置です。
-速くなるのはタイピングではなく、**AIチャット ⇄ エディタ ⇄ プレビュー** の往復です。
+この説明の動作は、公式の資料と設定ファイルから書いたもの。Mac と Windows の実機ではまだ押して確認していない。確認の手順は [docs/TESTING.md](docs/TESTING.md)。
 
-## コア仕様
+## 押したときに起きること
 
-| 操作 | 動作 |
+| 操作 | 起きること |
 |---|---|
-| CapsLock をポンッと押す | `Esc` — AI生成を止める / ダイアログを閉じる / ポップアップを抜ける |
-| CapsLock を長押し | `Hyper` — 下の表すべての入口 |
+| CapsLock をすぐ離す | `Esc`。Cursor では入力欄からフォーカスが外れる。生成は止まらない。 |
+| CapsLock を押したまま別のキー | そのキーだけが、[割り当て表](docs/keymap.md) の動作になる。 |
 
-## スターター8点（まずこれだけ）
+生成を止めるキー、変更の全部承認、変更の全部却下は、最初の一式に入れていない。
+チャットへ送るのは、チャット欄にいるときの普通の Enter。
 
-| キー | 動作 | 狙い |
-|---|---|---|
-| `Hyper + C` | AIチャット欄へジャンプ | 「こう直して」がすぐ打てる |
-| `Hyper + Enter` | AIへ送信 (`Cmd+Enter` 相当) | 送信ボタンを探さない |
-| `Hyper + 1 / 2 / 3` | 固定席切替: 1=エディタ 2=ブラウザ 3=ターミナル | 生成 → 即確認 → 即修正 |
-| `Hyper + Q / W` | ウィンドウを左半分 / 右半分 | 左エディタ・右プレビューを一瞬で |
-| `Hyper + T` | ターミナル開閉 | エラー確認・ビルドをすぐ見る |
-| `Hyper + Space` | ランチャー (Raycast / Spotlight / Flow Launcher) | 何でも召喚 |
-| `Hyper + V` | クリップボード履歴 | よく使うプロンプトの使い回し |
+割り当て表は [docs/keymap.md](docs/keymap.md) だけが正本。ほかの文書はそこへリンクする。
 
-## 第2弾（1週間後に足す）
+## 入れ方
 
-| キー | 動作 |
-|---|---|
-| `Hyper + H / J / K / L` | `← / ↓ / ↑ / →` — ホームポジションでカーソル移動 |
-| `Hyper + A / E` | 行頭 / 行末 |
-| `Hyper + B / F` | 単語ごと移動 |
-| `Hyper + R` | プレビュー再読み込み / 再実行 |
-| `Hyper + S` | スクリーンショット → そのまま AI に渡す |
+1個ずつ足す。最初から全部は入れない。
 
-詳しい割り当て表は [docs/keymap.md](docs/keymap.md) を参照。
+- macOS: [mac/README.md](mac/README.md)
+- Windows: [windows/README.md](windows/README.md)。Kanata か AutoHotkey の、どちらか一方。
 
-## セットアップ
+最初の成功は、CapsLock を一度叩いて `Esc` になること。そこを確認してから、次のキーを足す。
 
-### macOS
+## 壊さないために
 
-Karabiner-Elements を使います。手順は [mac/README.md](mac/README.md)。
+Hyper は「どのアプリともぶつからない」とは言えない。
 
-- コア設定: [`mac/karabiner/hyper-capslock.json`](mac/karabiner/hyper-capslock.json)
-  - CapsLock の Tap=Esc / Hold=Hyper と、Hyper+HJKL などの移動レイヤーを含みます
-  - アプリ切替・ウィンドウ配置は Raycast 側に Hyper ショートカットとして割り当てます（[mac/raycast/README.md](mac/raycast/README.md)）
+- Windows の `Ctrl+Alt+Shift+Win` は Office キーとして予約されている。この設定は、その4つをまとめて送らない。
+- Cursor の `Cmd+L` / `Ctrl+L` はサイドパネルの開閉で、開いていると閉じることがある。
+- 変更があるときの `Cmd+Enter` は全部承認、`Cmd+Shift+Backspace` は全部却下でもある。どちらも送らない。
 
-### Windows
-
-Kanata（推奨）または AutoHotkey v2 を使います。手順は [windows/README.md](windows/README.md)。
-
-- Kanata: [`windows/kanata/hyper-capslock.kbd`](windows/kanata/hyper-capslock.kbd) — Tap=Esc / Hold=Hyper のコア
-- AutoHotkey: [`windows/autohotkey/HyperCapsLock.ahk`](windows/autohotkey/HyperCapsLock.ahk) — コア＋バイブコーディング用ホットキー一式
-
-## 設計原則
-
-1. **最初から全部入れない。** スターター8点だけ。指が覚えたら第2弾を足す。
-2. **Hyper は衝突しない。** 通常のアプリは Hyper を使わないので、既存ショートカットを壊さない。
-3. **割り当ては自分の作業に寄せる。** エディタが Cursor ではなく VS Code なら、`Hyper + 1` の先を変えるだけ。
+判断の記録は [docs/decisions.md](docs/decisions.md)。
 
 ## ライセンス
 
