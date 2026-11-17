@@ -11,7 +11,7 @@ Mac と Windows の実機では、まだ押して確認していない。
 - 生成中に `CapsLock` をすぐ離しても、生成は止まらない。
 - 変更の提案が残っているときに、`CapsLock` をすぐ離す、`Hyper+C`、`Hyper+T`、`Hyper+1` を押しても、全部承認にも全部却下にもならない。
 - `CapsLock` を1秒押して、何も押さずに離しても、Office もスタートメニューも開かない。
-- `CapsLock` を押したまま 200ミリ秒以内に、割り当てていない `Space`（macOS では H は隠すことがあるので `Space`）を押して離しても、`Esc` は出ない。第2弾を入れる前の H でも、`Esc` は出ない。
+- `CapsLock` を押したまま 200ミリ秒以内に、割り当てていない `Space`（macOS では H は隠すことがあるので `Space`）を押して離しても、`Esc` は出ない。第2弾を入れる前の H でも、`Esc` は出ない。Kanata の右 Alt は、この確認に使わない。長押しの判定の対象外。
 
 ## 1. macOS・US 配列
 
@@ -20,7 +20,7 @@ Mac と Windows の実機では、まだ押して確認していない。
 3. `CapsLock` をすぐ離す。期待: `escape` の key down と key up が出る。`caps_lock` のランプは点いたままにならない。
 4. `CapsLock` を1秒押したままにする。期待: `left_shift`、`left_command`、`left_control`、`left_option` の4つが、押しているあいだ同時に down のまま。`left_command` だけ、にはならない。離すと4つとも up。`escape` は出ない（200ミリ秒を超えて押しているため）。
 5. Finder を前面にして、`CapsLock` を押したままピリオドを押す。期待: 診断ファイルのフォルダは開かない。Apple の手順では、Finder が前面のとき `Command+Option+Shift+Control+ピリオド` で sysdiagnose が始まる。https://podcasters.apple.com/assets/Mac-sysdiagnose-logging-instructions.pdf
-6. この段階では Q、W、H を押さない。
+6. 割り当てが無いキーは、`Command+Control+Option+Shift` と一緒にアプリへ届く。Q、W、H は押さない。
 7. ルール `3. スターター` と `4. スターター` を「Enable」する。ルール `4. スターター` のアプリ名を、自分のブラウザとターミナルに変えてから「Enable」する。
 8. Cursor を前面にして、チャット欄を閉じた状態で `Hyper+C`。期待: サイドパネルが開く。もう一度押すと閉じる。閉じるのは不具合ではなく、公式の開閉どおり。
 9. エディタで文字を選択した状態で `Hyper+C`。期待: 全部承認や全部却下にはならない。開閉になるか、選択が新しいチャットに追加されるかは、公式ページに両方書いてあるので、出た方をメモする。
