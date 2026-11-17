@@ -17,9 +17,9 @@ Mac と Windows の実機では、まだ押して確認していない。
 | `CapsLock` をすぐ離す | 入力欄から出る。生成は止まらない | `Esc` | `Esc` | `Esc` |
 | `CapsLock` を押したまま | 次のキーの意味を変える | `Command+Control+Option+Shift` を押したままにする | 別の意味の一覧に切り替える。4つの修飾は送らない | 押している印だけを付ける。4つの修飾は送らない |
 | `Hyper+C` | チャットを呼ぶ | Cursor が前面なら `Command+L`。違うアプリなら Cursor を前面にするだけで、`Command+L` は送らない | 常に `Ctrl+L`。前面のアプリに届く | Cursor が前面なら `Ctrl+L`。違うときはタスクバーの1番（`Win+1`） |
-| `Hyper+1` | エディタを前面に | `open -a Cursor` | `Win+1` | `Win+1` |
-| `Hyper+2` | プレビューを前面に | `open -a "Google Chrome"`（例。名前は変える） | `Win+2` | `Win+2` |
-| `Hyper+3` | ターミナルアプリを前面に | `open -a Terminal`（例。名前は変える） | `Win+3` | `Win+3` |
+| `Hyper+1` | エディタを前面に | `/usr/bin/open -a Cursor` | `Win+1` | `Win+1` |
+| `Hyper+2` | プレビューを前面に | `/usr/bin/open -a "Google Chrome"`（例。名前は変える） | `Win+2` | `Win+2` |
+| `Hyper+3` | ターミナルアプリを前面に | `/usr/bin/open -a Terminal`（例。名前は変える） | `Win+3` | `Win+3` |
 | `Hyper+T` | エディタ下のパネルを開閉 | Cursor か VS Code が前面のときだけ `Command+J`。それ以外は何もしない | 常に `Ctrl+J`。前面のアプリに届く | Cursor か VS Code が前面のときだけ `Ctrl+J` |
 | `Hyper+Q` | ウィンドウを左半分 | 最初は割り当てない。押さない | `Win+←` | `Win+←` |
 | `Hyper+W` | ウィンドウを右半分 | 最初は割り当てない。押さない | `Win+→` | `Win+→` |
@@ -51,7 +51,7 @@ macOS の長押しは、`Command+Control+Option+Shift` を本当に押したま�
 
 Windows の長押しは修飾キーを押さない。割り当てていないキーは、普通の文字として届く。Office キーにはならない。
 
-Kanata は前面のアプリを見分けられない。`Ctrl+L` と `Ctrl+J` は、今開いているアプリに届く。チャットとパネルは、先に `Hyper+1` で Cursor を前面にしてから押す。
+Kanata は前面のアプリを見分けられない。`Ctrl+L` と `Ctrl+J` は、今開いているアプリに届く。チャットとパネルは、先に `Hyper+1` で Cursor を前面にしてから押す。右 Alt だけは、長押しの判定の対象外。
 
 AutoHotkey は Cursor が前面かどうかを見てから送る。Kanata と AutoHotkey は同時に動かさない。
 
