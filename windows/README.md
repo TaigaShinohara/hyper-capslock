@@ -1,13 +1,15 @@
 # Windows
 
 Kanata か AutoHotkey v2 の、どちらか一方だけを使う。同時には使わない。
-両方とも、CapsLock を押した瞬間に `Ctrl+Alt+Shift+Win` を送らない。離しただけでも送らない。
+両方とも、`CapsLock` を押した瞬間に `Ctrl+Alt+Shift+Win` を送らない。離しただけでも送らない。
 
-推奨は Kanata。理由は、最初のキー（チャット、アプリの切替、左右の半分、パネル）が設定ファイルに入っていて、Office キーの組み合わせを出さないこと。「再起動しなくても安定する」「Esc の判定が速い」とは書かない。出典が無い。
+推奨は Kanata。理由は、最初に入れるキー（チャット、アプリの切り替え、左右の半分、パネル）が設定ファイルに入っていて、Office キーの組み合わせを出さないこと。
 
-割り当て表は [docs/keymap.md](../docs/keymap.md)。確認は [docs/TESTING.md](../docs/TESTING.md)。実機ではまだ確認していない。
+割り当て表は [割り当て表](../docs/keymap.md)。確認の手順は [確認の手順](../docs/TESTING.md)。
 
-Office キーをレジストリで止める方法は任意で、通常は要らない。[docs/windows-office-key.md](../docs/windows-office-key.md)
+Mac と Windows の実機では、まだ押して確認していない。
+
+Office キーをレジストリで止める方法は任意で、通常は要らない。[Office キーを自分で止める](../docs/windows-office-key.md)
 
 ## 先にやること
 
@@ -17,7 +19,7 @@ Office キーをレジストリで止める方法は任意で、通常は要ら�
 2. プレビューに使うブラウザ
 3. ターミナル
 
-`Windows キー+数字` は、その位置のアプリを開く。起動済みならそのアプリに切り替える。
+`Win+数字` は、その位置のアプリを開く。起動済みならそのアプリに切り替える。
 
 https://support.microsoft.com/en-us/accessibility/windows/keyboard-shortcuts-in-windows
 
@@ -47,16 +49,18 @@ https://github.com/jtroo/kanata/blob/v1.12.0/docs/config.adoc
 
 ### 最初の成功
 
-1. Cursor のチャット欄で CapsLock をすぐ離す。入力欄からフォーカスが外れる。大文字固定にはならない。
-2. CapsLock を1秒押して離す。Office もスタートメニューも開かない。
-3. CapsLock+1 で Cursor が前面に来る。そのあと CapsLock+C でチャット欄が開閉する。
-4. ブラウザが前面のときに CapsLock+C を押すと、`Ctrl+L` がそのブラウザに届く。先に CapsLock+1 を押す。
+1. Cursor のチャット欄で `CapsLock` をすぐ離す。入力欄からフォーカスが外れる。大文字固定にはならない。
+2. `CapsLock` を1秒押して離す。Office もスタートメニューも開かない。
+3. `Hyper+1` で Cursor が前面に来る。そのあと `Hyper+C` でチャット欄が開閉する。
 
-第2弾（H J K L と A E B F）は、`hyper-capslock.kbd` の `XX` を、ファイル内のコメントの動作に1個ずつ置き換えてから、Kanata を起動し直す。
+> [!WARNING]
+> ブラウザが前面のときに `Hyper+C` を押すと、`Ctrl+L` がそのブラウザに届く。先に `Hyper+1` を押す。
+
+第2弾（`Hyper+H` / `J` / `K` / `L` と `Hyper+A` / `E` / `B` / `F`）は、`hyper-capslock.kbd` の `XX` を、ファイル内のコメントの動作に1個ずつ置き換えてから、Kanata を起動し直す。
 
 ### 外し方
 
-トレイの終了、または起動したウィンドウを閉じる。スタートアップに置いたショートカットがあれば消す。CapsLock は元に戻る。
+トレイの終了、または起動したウィンドウを閉じる。スタートアップに置いたショートカットがあれば消す。`CapsLock` は元に戻る。
 
 ## B. AutoHotkey v2
 
@@ -66,7 +70,7 @@ Kanata を終了してから使う。スクリプトは、知っている Kanata
 2. `windows/autohotkey/HyperCapsLock.ahk` をダブルクリックする。
 3. スタートアップに入れる場合は、ショートカットを `shell:startup` のフォルダへ置く。
 
-単押しと長押しの境界は 200ミリ秒。これはこちらの選択で、Kanata と macOS の数字に合わせた。
+すぐ離す操作と長押しの境界は 200ミリ秒。これはこちらの選択で、Kanata と macOS の数字に合わせた。
 押したまま 60秒を超えると、離した通知を待たずに Hyper を解除する。キーを離した通知が来ない配列で、戻らなくなるのを防ぐため。60秒もこちらの選択。
 
 第2弾は、ファイル先頭の `Phase2 := false` を `true` にし、いらない行を消してから、スクリプトを読み込み直す。
@@ -76,23 +80,23 @@ Kanata を終了してから使う。スクリプトは、知っている Kanata
 
 ### 外し方
 
-トレイアイコンを右クリックして Exit。スタートアップのショートカットがあれば消す。
+トレイアイコンを右クリックして「Exit」。スタートアップのショートカットがあれば消す。
 
 ## JIS 配列
 
-Windows の日本語入力では、CapsLock の位置が「英数」になり、Shift と一緒に押すと CapsLock、というキーボードがある。
-AutoHotkey の公式キー一覧は、一部の IME が CapsLock を飲み込んで、スクリプトから見えなくする、と書いている。例として「英語キーボードでの日本語入力」が挙がっている。
+Windows の日本語入力では、`CapsLock` の位置が「英数」になり、`Shift` と一緒に押すと `CapsLock`、というキーボードがある。
+AutoHotkey の公式キー一覧は、一部の IME が `CapsLock` を飲み込んで、スクリプトから見えなくする、と書いている。例として「英語キーボードでの日本語入力」が挙がっている。
 
 https://www.autohotkey.com/docs/v2/KeyList.htm
 
 離したときの通知が来ない、という話は利用者の報告であり、このリポジトリでは実機で見ていない。
-見る手順は [docs/TESTING.md](../docs/TESTING.md) の「Windows・JIS」。見えなかったキーボードでは、この設定を使わない。スキャンコードをレジストリで書き換える手順は置かない。
+見る手順は [確認の手順](../docs/TESTING.md) の「Windows・JIS」。見えなかったキーボードでは、この設定を使わない。スキャンコードをレジストリで書き換える手順は置かない。
 
-Hyper+T は `Ctrl+J` を送る。バッククォートは送らない。J は US でも JIS でも同じ文字キー。
+`Hyper+T` は `Ctrl+J` を送る。バッククォートは送らない。J は US でも JIS でも同じ文字キー。
 
 ## うまくいかないとき
 
-- 大文字のままになる: Kanata か AutoHotkey が動いていない。または JIS の入力がキーを飲み込んでいる。上の JIS の確認に進む。
+- 大文字固定になる: Kanata か AutoHotkey が動いていない。または JIS の入力がキーを飲み込んでいる。上の JIS の確認に進む。
 - Office が開く: この設定とは別のツールが `Ctrl+Alt+Shift+Win` を送っている。推奨設定はそれを送らない。ほかのツールを止めるか、任意の手順で Office キーを止める。
 - 管理者として開いたウィンドウで効かない: AutoHotkey の公式 FAQ では、昇格していないスクリプトは昇格したウィンドウを操作できない。対処は、スクリプトを「Run with UI access」で起動すること。管理者として起動すると、スクリプトが開くアプリまで管理者になる、と書いてある。https://www.autohotkey.com/docs/v2/FAQ.htm
 - Kanata の LLHOOK 版が同じウィンドウで効くかは未確認。リリースノートは、wintercept の方がより多くのアプリで効く、と書いている。ドライバの不具合があるので、効かないウィンドウはマウスで操作する、を先にする。
