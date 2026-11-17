@@ -1,0 +1,27 @@
+;; ハイパーCapsLock — Kanata (Windows / Linux でも使える)
+;; CapsLock: tap = Esc, hold = Hyper (Ctrl+Alt+Shift+Win)
+;;
+;; 使い方: kanata.exe --cfg hyper-capslock.kbd
+;; ドキュメント: https://github.com/jtroo/kanata
+
+(defcfg
+  process-unmapped-keys yes
+)
+
+(defsrc
+  caps
+)
+
+(defvar
+  tap-time 200
+  hold-time 200
+)
+
+(defalias
+  ;; tap-hold: 単押しは esc、長押しは全モディファイア同時押し (= Hyper)
+  cap (tap-hold $tap-time $hold-time esc (multi lsft lctl lalt lmet))
+)
+
+(deflayer base
+  @cap
+)
