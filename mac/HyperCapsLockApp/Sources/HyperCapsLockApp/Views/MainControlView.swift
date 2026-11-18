@@ -31,11 +31,22 @@ struct MainControlView: View {
                     permissionWarningCard
                 }
 
+                if !appState.capsLockConflicts.isEmpty {
+                    ModifierConflictWarningCard(
+                        conflicts: appState.capsLockConflicts,
+                        onOpenKeyboardSettings: { appState.openKeyboardModifierSettings() },
+                        onRecheck: { appState.recheckSystemModifiersAndRuntime() }
+                    )
+                }
+
                 LiveTestBannerView(
                     isEnabled: appState.config.isEnabled,
                     isAccessibilityTrusted: appState.isAccessibilityTrusted,
                     isTapRunning: appState.isTapRunning,
                     isHoldingHyper: appState.isHoldingHyper,
+                    hasModifierConflict: !appState.capsLockConflicts.isEmpty,
+                    jisEisuuEnabled: appState.config.jisEisuuEnabled,
+                    modifierHintText: appState.modifierHintText,
                     recentFeedbacks: appState.recentFeedbacks
                 )
 

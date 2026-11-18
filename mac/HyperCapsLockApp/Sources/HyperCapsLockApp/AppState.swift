@@ -21,6 +21,8 @@ final class AppState {
     var isTapRunning: Bool = false
     var isHidutilApplied: Bool = false
     var isHoldingHyper: Bool = false
+    var capsLockConflicts: [CapsLockSystemConflict] = []
+    var modifierHintText: String?
     var installedApps: [AppTarget] = []
     var recentFeedbacks: [HyperFeedbackEvent] = []
     var escTestSuccessCount: Int = 0
@@ -86,6 +88,16 @@ final class AppState {
         }
     }
 
+    func openKeyboardModifierSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    func recheckSystemModifiersAndRuntime() {
+        refreshAccessibilityAndRuntime()
+    }
+
     func refreshInstalledApps() {
         installedApps = appDiscovery.discoverInstalledApps()
     }
@@ -138,7 +150,22 @@ final class AppState {
                 guard let self else { return }
                 self.isHoldingHyper = holding
                 if let feedback {
+                    self.modifierHintText = nil
                     self.recordFeedback(feedback)
+                }
+            }
+        }
+
+        eventTapService.onModifierKeyObserved = { [weak self] keyCode in
+            guard let keyName = ModifierConflictDetector.modifierKeyDisplayName(forVirtualKeyCode: keyCode) else {
+                return
+            }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if !self.capsLockConflicts.isEmpty {
+                    self.modifierHintText = "ヒント：いま「\(keyName)」キーが届いています（システム設定で CapsLock が変更されているため）"
+                } else if self.config.onboardingStep == .testEsc {
+                    self.modifierHintText = "ヒント：いま「\(keyName)」キーが押されました（CapsLock ではなく別の修飾キーになっています）"
                 }
             }
         }
@@ -234,6 +261,17 @@ final class AppState {
     }
 
     private func refreshAccessibilityAndRuntime() {
+        let previousConflicts = capsLockConflicts
+        let currentConflicts = SystemModifierInspector.detectCapsLockConflicts()
+        capsLockConflicts = currentConflicts
+        if currentConflicts.isEmpty && !previousConflicts.isEmpty {
+            modifierHintText = nil
+        }
+
+        eventTapService.updateShouldReportModifierHint(
+            !currentConflicts.isEmpty || config.onboardingStep == .testEsc
+        )
+
         let trusted = EventTapService.isAccessibilityTrusted(prompt: false)
         let trustChanged = trusted != isAccessibilityTrusted
         isAccessibilityTrusted = trusted
@@ -243,6 +281,7 @@ final class AppState {
         }
 
         if config.isEnabled && trusted {
+            let conflictsCleared = !previousConflicts.isEmpty && currentConflicts.isEmpty
             if !isTapRunning {
                 let started = eventTapService.start()
                 isTapRunning = started
@@ -250,7 +289,7 @@ final class AppState {
                     isHidutilApplied = hidutilService.applyCapsLockRemap()
                     statusBannerMessage = nil
                 }
-            } else if !hidutilService.isRemapCurrentlyApplied() {
+            } else if conflictsCleared || !hidutilService.isRemapCurrentlyApplied() {
                 isHidutilApplied = hidutilService.applyCapsLockRemap()
             }
         } else {

@@ -13,12 +13,14 @@ final class EventTapService: @unchecked Sendable {
 
     private var configSnapshot = HyperConfig()
     private var frontmostBundleIDSnapshot: String?
+    private var shouldReportModifierHintSnapshot = false
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private let eventSource = CGEventSource(stateID: .hidSystemState)
 
     var onDecisionFeedback: (@Sendable (Bool, HyperFeedbackEvent?) -> Void)?
+    var onModifierKeyObserved: (@Sendable (Int) -> Void)?
     var onActivateApp: (@Sendable (AppTarget) -> Void)?
     var onSnapWindow: (@Sendable (WindowSnapSide) -> Void)?
 
@@ -49,12 +51,20 @@ final class EventTapService: @unchecked Sendable {
         lock.unlock()
     }
 
+    func updateShouldReportModifierHint(_ shouldReport: Bool) {
+        lock.lock()
+        shouldReportModifierHintSnapshot = shouldReport
+        lock.unlock()
+    }
+
     @discardableResult
     func start() -> Bool {
         guard eventTap == nil else { return true }
         guard Self.isAccessibilityTrusted(prompt: false) else { return false }
 
-        let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        let mask = (1 << CGEventType.keyDown.rawValue)
+            | (1 << CGEventType.keyUp.rawValue)
+            | (1 << CGEventType.flagsChanged.rawValue)
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
         guard let tap = CGEvent.tapCreate(
@@ -117,12 +127,23 @@ final class EventTapService: @unchecked Sendable {
             return Unmanaged.passUnretained(event)
         }
 
-        guard type == .keyDown || type == .keyUp else {
+        // 自分が送出した合成イベントは再処理せず通す
+        if event.getIntegerValueField(.eventSourceUserData) == Self.syntheticEventTag {
             return Unmanaged.passUnretained(event)
         }
 
-        // 自分が送出した合成イベントは再処理せず通す
-        if event.getIntegerValueField(.eventSourceUserData) == Self.syntheticEventTag {
+        if type == .flagsChanged {
+            lock.lock()
+            let shouldReport = shouldReportModifierHintSnapshot
+            lock.unlock()
+            if shouldReport {
+                let keyCode = Int(event.getIntegerValueField(.keyboardEventKeycode))
+                onModifierKeyObserved?(keyCode)
+            }
+            return Unmanaged.passUnretained(event)
+        }
+
+        guard type == .keyDown || type == .keyUp else {
             return Unmanaged.passUnretained(event)
         }
 

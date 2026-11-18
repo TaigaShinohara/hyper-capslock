@@ -7,6 +7,9 @@ struct LiveTestBannerView: View {
     let isAccessibilityTrusted: Bool
     let isTapRunning: Bool
     let isHoldingHyper: Bool
+    let hasModifierConflict: Bool
+    let jisEisuuEnabled: Bool
+    let modifierHintText: String?
     let recentFeedbacks: [HyperFeedbackEvent]
 
     var body: some View {
@@ -51,6 +54,16 @@ struct LiveTestBannerView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            if let hint = modifierHintText {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(.orange)
+                    Text(hint)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
         }
         .padding(14)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
@@ -60,6 +73,7 @@ struct LiveTestBannerView: View {
         if !isEnabled { return .secondary }
         if !isAccessibilityTrusted || !isTapRunning { return .orange }
         if isHoldingHyper { return .blue }
+        if hasModifierConflict { return .orange }
         return .green
     }
 
@@ -68,6 +82,11 @@ struct LiveTestBannerView: View {
         if !isAccessibilityTrusted { return "アクセシビリティ権限の許可待ち" }
         if !isTapRunning { return "開始準備中..." }
         if isHoldingHyper { return "Hyper 待機中 — 次のキーを押してください" }
+        if hasModifierConflict {
+            return jisEisuuEnabled
+                ? "稼働中（修飾キー設定により CapsLock は無効・英数キーは有効）"
+                : "稼働中（システム設定の修飾キーと競合中）"
+        }
         return "稼働中 — CapsLock が使えます"
     }
 }

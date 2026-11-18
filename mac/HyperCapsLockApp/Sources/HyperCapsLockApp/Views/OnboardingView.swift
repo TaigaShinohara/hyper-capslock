@@ -6,26 +6,28 @@ struct OnboardingView: View {
     @Bindable var appState: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            headerView
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                headerView
 
-            stepIndicator
+                stepIndicator
 
-            Divider()
+                Divider()
 
-            switch appState.config.onboardingStep {
-            case .permissions:
-                step1PermissionsView
-            case .testEsc:
-                step2TestEscView
-            case .starter, .completed:
-                step3StarterView
+                switch appState.config.onboardingStep {
+                case .permissions:
+                    step1PermissionsView
+                case .testEsc:
+                    step2TestEscView
+                case .starter, .completed:
+                    step3StarterView
+                }
+
+                Spacer(minLength: 0)
             }
-
-            Spacer(minLength: 0)
+            .padding(24)
         }
-        .padding(24)
-        .frame(width: 560, height: 520)
+        .frame(width: 560, height: 560)
     }
 
     private var headerView: some View {
@@ -138,11 +140,22 @@ struct OnboardingView: View {
                 in: RoundedRectangle(cornerRadius: 12)
             )
 
+            if !appState.capsLockConflicts.isEmpty {
+                ModifierConflictWarningCard(
+                    conflicts: appState.capsLockConflicts,
+                    onOpenKeyboardSettings: { appState.openKeyboardModifierSettings() },
+                    onRecheck: { appState.recheckSystemModifiersAndRuntime() }
+                )
+            }
+
             LiveTestBannerView(
                 isEnabled: appState.config.isEnabled,
                 isAccessibilityTrusted: appState.isAccessibilityTrusted,
                 isTapRunning: appState.isTapRunning,
                 isHoldingHyper: appState.isHoldingHyper,
+                hasModifierConflict: !appState.capsLockConflicts.isEmpty,
+                jisEisuuEnabled: appState.config.jisEisuuEnabled,
+                modifierHintText: appState.modifierHintText,
                 recentFeedbacks: appState.recentFeedbacks
             )
 
@@ -194,11 +207,22 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
 
+            if !appState.capsLockConflicts.isEmpty {
+                ModifierConflictWarningCard(
+                    conflicts: appState.capsLockConflicts,
+                    onOpenKeyboardSettings: { appState.openKeyboardModifierSettings() },
+                    onRecheck: { appState.recheckSystemModifiersAndRuntime() }
+                )
+            }
+
             LiveTestBannerView(
                 isEnabled: appState.config.isEnabled,
                 isAccessibilityTrusted: appState.isAccessibilityTrusted,
                 isTapRunning: appState.isTapRunning,
                 isHoldingHyper: appState.isHoldingHyper,
+                hasModifierConflict: !appState.capsLockConflicts.isEmpty,
+                jisEisuuEnabled: appState.config.jisEisuuEnabled,
+                modifierHintText: appState.modifierHintText,
                 recentFeedbacks: appState.recentFeedbacks
             )
 
