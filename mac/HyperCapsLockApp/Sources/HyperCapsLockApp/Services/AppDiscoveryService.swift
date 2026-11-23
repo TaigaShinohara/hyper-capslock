@@ -93,10 +93,11 @@ final class AppDiscoveryService {
         return (slot1, slot2, slot3)
     }
 
-    func activate(_ target: AppTarget) {
+    @discardableResult
+    func activate(_ target: AppTarget) -> Bool {
         if let runningApp = NSRunningApplication.runningApplications(withBundleIdentifier: target.bundleIdentifier).first {
             runningApp.activate(options: [.activateAllWindows])
-            return
+            return true
         }
 
         let appURL: URL?
@@ -106,10 +107,11 @@ final class AppDiscoveryService {
             appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: target.bundleIdentifier)
         }
 
-        guard let url = appURL else { return }
+        guard let url = appURL else { return false }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+        return true
     }
 
     func icon(for target: AppTarget) -> NSImage {

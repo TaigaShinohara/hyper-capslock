@@ -23,14 +23,21 @@ Mac と Windows の実機では、まだ押して確認していない。
 
 割り当て表の正本は [割り当て表](docs/keymap.md)。ほかの文書はそこへリンクする。
 
-## 入れ方
+## 入れ方（macOS）
 
-1個ずつ足す。最初から全部は入れない。
+macOS は、まずネイティブアプリを使う。最初に入れるキーはアプリ内で確認できる。
 
-- [macOS の手順](mac/README.md)
-- [Windows の手順](windows/README.md)。Kanata か AutoHotkey の、どちらか一方。
+1. [macOSアプリを入れる手順](mac/README.md) でアプリを起動する。
+2. 画面の手順で、アクセシビリティ権限を許可する。
+3. `CapsLock` をすぐ離して `Esc` になることを確認する。
+4. 確認が成功してから、往復ショートカットを有効にする。
 
-最初の成功は、`CapsLock` をすぐ離して `Esc` になること。そこを確認してから、次のキーを足す。
+ネイティブアプリを使わず、外部ツールで動作させる方法は代替導線とする。
+
+- Karabiner-Elements を使う場合は [macOSの代替手順](mac/README.md) の「代替: Karabiner-Elements」へ進む。
+- Windows は [Windowsの代替手順](windows/README.md)。Kanata か AutoHotkey のどちらか一方だけを使う。
+
+最初の成功は、`CapsLock` をすぐ離して `Esc` になること。失敗したまま次へ進まない。
 
 ## 壊さないために
 

@@ -6,6 +6,7 @@ struct LiveTestBannerView: View {
     let isEnabled: Bool
     let isAccessibilityTrusted: Bool
     let isTapRunning: Bool
+    let isHidutilApplied: Bool
     let isHoldingHyper: Bool
     let hasModifierConflict: Bool
     let jisEisuuEnabled: Bool
@@ -25,7 +26,7 @@ struct LiveTestBannerView: View {
                 Spacer()
 
                 if isHoldingHyper {
-                    Text("HYPER 長押し中")
+                    Text("CapsLock 長押し中")
                         .font(.caption.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -40,19 +41,11 @@ struct LiveTestBannerView: View {
                         .foregroundStyle(Color.accentColor)
                     Text(latest.summary)
                         .font(.subheadline.weight(.medium))
-                    Text("— \(latest.detail)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
-            } else {
-                Text("ここに押したキーの反応がリアルタイムで表示されます。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             if let hint = modifierHintText {
@@ -72,6 +65,7 @@ struct LiveTestBannerView: View {
     private var statusColor: Color {
         if !isEnabled { return .secondary }
         if !isAccessibilityTrusted || !isTapRunning { return .orange }
+        if !isHidutilApplied { return .orange }
         if isHoldingHyper { return .blue }
         if hasModifierConflict { return .orange }
         return .green
@@ -81,7 +75,8 @@ struct LiveTestBannerView: View {
         if !isEnabled { return "停止中（CapsLock は標準動作）" }
         if !isAccessibilityTrusted { return "アクセシビリティ権限の許可待ち" }
         if !isTapRunning { return "開始準備中..." }
-        if isHoldingHyper { return "Hyper 待機中 — 次のキーを押してください" }
+        if !isHidutilApplied { return "キー監視中（CapsLock の変換に失敗）" }
+        if isHoldingHyper { return "次のキーを待っています" }
         if hasModifierConflict {
             return jisEisuuEnabled
                 ? "稼働中（修飾キー設定により CapsLock は無効・英数キーは有効）"

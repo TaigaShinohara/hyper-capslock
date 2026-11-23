@@ -68,6 +68,26 @@ struct HyperEngineTests {
         #expect(up.feedback == nil)
     }
 
+    @Test("Escの閾値ちょうど200msでは単押しを認識する")
+    func exactTapThresholdProducesEscape() {
+        let engine = HyperEngine()
+        let config = makeDefaultConfig()
+
+        _ = engine.handle(
+            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            config: config
+        )
+        let up = engine.handle(
+            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1200),
+            config: config
+        )
+
+        #expect(up.actions == [
+            .sendKey(keyCode: KeyCodeCatalog.escape, kind: .keyDown, modifiers: []),
+            .sendKey(keyCode: KeyCodeCatalog.escape, kind: .keyUp, modifiers: []),
+        ])
+    }
+
     @Test("200ms以内に別キーを同時押しした場合、離してもEscは出ない")
     func rolloverWithin200MsSuppressesEscape() {
         let engine = HyperEngine()
