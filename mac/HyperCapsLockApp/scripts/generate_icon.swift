@@ -8,6 +8,17 @@ guard CommandLine.arguments.count >= 2 else {
 }
 
 let outputIcnsPath = CommandLine.arguments[1]
+
+// 正式アイコンのマスター（2026-11-24 決定）があれば、それを正本にする。
+// 無い場合だけ、下の描画コード（旧デザイン）で生成する。
+let scriptURL = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
+let masterURL = scriptURL
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .appendingPathComponent("Resources/icon_master_1024.png")
+let masterImage: NSImage? = FileManager.default.fileExists(atPath: masterURL.path)
+    ? NSImage(contentsOf: masterURL)
+    : nil
 let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("HyperCapsLockIcon-\(UUID().uuidString)")
 let iconsetDir = tempDir.appendingPathComponent("AppIcon.iconset")
 try FileManager.default.createDirectory(at: iconsetDir, withIntermediateDirectories: true)
@@ -46,6 +57,12 @@ func renderIcon(pixelSize: Int) -> Data? {
 
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+
+    if let masterImage {
+        masterImage.draw(in: CGRect(x: 0, y: 0, width: CGFloat(pixelSize), height: CGFloat(pixelSize)))
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.representation(using: .png, properties: [:])
+    }
 
     let s = CGFloat(pixelSize)
     let margin = s * 0.08
