@@ -49,4 +49,16 @@ Hyper は、どのアプリともぶつからない、とは言えない。
 
 判断の記録は [判断の記録](docs/decisions.md)。
 
+
+## AIエージェントから使う（L2）
+
+CLI が共有芯を通して、設定ファイルの状態取得・導入・検証を実行できる。割り当ての正本は上の割り当て表（docs/keymap.md）で、機械可読版は config/bindings.json。
+正本ガイドは [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md)、目録は [docs/agent-manifest.json](docs/agent-manifest.json)、操作カタログは [docs/AGENT_OPERATIONS.md](docs/AGENT_OPERATIONS.md)。
+
+```bash
+python3 cli/hypercapslock.py status --json
+python3 cli/hypercapslock.py install --platform mac --dry-run --json
+python3 cli/hypercapslock.py verify --json
+```
+
 ライセンスは MIT。
