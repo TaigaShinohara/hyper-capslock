@@ -64,6 +64,16 @@ Kanata（推奨）または AutoHotkey v2 を使います。手順は [windows/R
 2. **Hyper は衝突しない。** 通常のアプリは Hyper を使わないので、既存ショートカットを壊さない。
 3. **割り当ては自分の作業に寄せる。** エディタが Cursor ではなく VS Code なら、`Hyper + 1` の先を変えるだけ。
 
+## AIエージェントから使う（L2）
+
+CLI が共有芯を通して状態取得・導入・検証まで実行できます。正本は [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md)、目録は [docs/agent-manifest.json](docs/agent-manifest.json)、操作カタログは [docs/AGENT_OPERATIONS.md](docs/AGENT_OPERATIONS.md)。
+
+```bash
+python3 cli/hypercapslock.py status --json
+python3 cli/hypercapslock.py install --platform mac --dry-run --json
+python3 cli/hypercapslock.py verify --json
+```
+
 ## ライセンス
 
 MIT
