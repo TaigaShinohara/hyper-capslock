@@ -27,7 +27,7 @@ def main(argv=None):
         sp=sub.add_parser(name, help=f"{name} — see docs/AGENT_GUIDE.md"); common(sp)
     sub.choices["history"].add_argument("--limit", type=int, default=20)
     sub.choices["doctor"].add_argument("--platform", choices=["mac","windows"])
-    sp=sub.add_parser("list", help="list bindings"); common(sp); sp.add_argument("--phase", choices=["core","starter","phase2"])
+    sp=sub.add_parser("list", help="list bindings"); common(sp); sp.add_argument("--phase", choices=["core","starter","phase2","excluded"])
     sp=sub.add_parser("get", help="get one binding"); common(sp); sp.add_argument("id")
     for name in ["install","uninstall"]:
         sp=sub.add_parser(name, help=f"{name} platform config"); common(sp); sp.add_argument("--platform", required=True, choices=["mac","windows"])

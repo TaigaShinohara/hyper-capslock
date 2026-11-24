@@ -23,3 +23,7 @@
 ## 正本化の方針
 
 割り当ての正本を `config/bindings.json`（安定ID付き）に一本化し、CLI はそれとプラットフォーム設定ファイルを同じ芯（`cli/hypercapslock_core.py`）で読む。既存のプラットフォームファイルは配布物のまま残す（生成し直さない＝既存利用者を壊さない）。
+
+## 追記（マージ時・2026-11-24）
+
+作業中に main が進み、macOS ネイティブアプリ（HyperCapsLockApp、Swift・Coreにテストあり）と判断記録（docs/decisions.md）が追加され、割り当て表（docs/keymap.md）が正本として確定していた。本CLIの対象は『設定ファイル一式（Karabiner/Kanata/AHK の代替導線）＋割り当ての機械可読化』であり、ネイティブアプリ本体のエージェント対応は対象外（未実施）。bindings は keymap.md の現行内容に合わせて修正済み（旧スターターの Hyper+Enter 等は excluded）。

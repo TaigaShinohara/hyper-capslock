@@ -1,72 +1,59 @@
 # ハイパーCapsLock
 
-> **CapsLockを、AI開発のコックピットにする**
+CapsLock を、AI に指示して開発するときの起点にする。
 
-CapsLock を捨てるな。最強のキーに変えろ。
+単押しは `Esc`。長押ししているあいだだけ、次に押すキーの意味が変わる（これを Hyper と呼ぶ）。
 
-単押しは `Esc`、長押しは `Hyper`（`Ctrl + Alt + Shift + Cmd / Win` 同時押し）。
-左手小指の真下に、既存ショートカットと一切衝突しない「自分専用のボタン」が生まれます。
+速くしたいのはタイピングではなく、**AIチャット ⇄ エディタ ⇄ プレビュー** の往復。
 
-バイブコーディング — コードを手書きするのではなく、AI に指示して・確認して・直させる開発 — に特化したキー配置です。
-速くなるのはタイピングではなく、**AIチャット ⇄ エディタ ⇄ プレビュー** の往復です。
+主に使うエディタは Cursor。VS Code は副次。macOS と Windows、US 配列と JIS 配列の両方を対象にする。この説明は、公式の資料と設定ファイルから書いた。
 
-## コア仕様
+Mac と Windows の実機では、まだ押して確認していない。
+押して確かめるときは [確認の手順](docs/TESTING.md)。
 
-| 操作 | 動作 |
-|---|---|
-| CapsLock をポンッと押す | `Esc` — AI生成を止める / ダイアログを閉じる / ポップアップを抜ける |
-| CapsLock を長押し | `Hyper` — 下の表すべての入口 |
+## 押したときに起きること
 
-## スターター8点（まずこれだけ）
+| 操作 | 起きること |
+| --- | --- |
+| `CapsLock` をすぐ離す | `Esc`。Cursor では入力欄からフォーカスが外れる。生成は止まらない。 |
+| `CapsLock` を押したまま別のキー | [割り当て表](docs/keymap.md) にあるキーは、その動作になる。macOS で表に無いキーは、4つの修飾と一緒に届く。 |
 
-| キー | 動作 | 狙い |
-|---|---|---|
-| `Hyper + C` | AIチャット欄へジャンプ | 「こう直して」がすぐ打てる |
-| `Hyper + Enter` | AIへ送信 (`Cmd+Enter` 相当) | 送信ボタンを探さない |
-| `Hyper + 1 / 2 / 3` | 固定席切替: 1=エディタ 2=ブラウザ 3=ターミナル | 生成 → 即確認 → 即修正 |
-| `Hyper + Q / W` | ウィンドウを左半分 / 右半分 | 左エディタ・右プレビューを一瞬で |
-| `Hyper + T` | ターミナル開閉 | エラー確認・ビルドをすぐ見る |
-| `Hyper + Space` | ランチャー (Raycast / Spotlight / Flow Launcher) | 何でも召喚 |
-| `Hyper + V` | クリップボード履歴 | よく使うプロンプトの使い回し |
+生成を止めるキー、変更の全部承認、変更の全部却下は、最初に入れるキーには含めていない。
+チャットへ送るのは、チャット欄にいるときの普通の `Enter`。
 
-## 第2弾（1週間後に足す）
+割り当て表の正本は [割り当て表](docs/keymap.md)。ほかの文書はそこへリンクする。
 
-| キー | 動作 |
-|---|---|
-| `Hyper + H / J / K / L` | `← / ↓ / ↑ / →` — ホームポジションでカーソル移動 |
-| `Hyper + A / E` | 行頭 / 行末 |
-| `Hyper + B / F` | 単語ごと移動 |
-| `Hyper + R` | プレビュー再読み込み / 再実行 |
-| `Hyper + S` | スクリーンショット → そのまま AI に渡す |
+## 入れ方（macOS）
 
-詳しい割り当て表は [docs/keymap.md](docs/keymap.md) を参照。
+macOS は、まずネイティブアプリを使う。最初に入れるキーはアプリ内で確認できる。
 
-## セットアップ
+1. [macOSアプリを入れる手順](mac/README.md) でアプリを起動する。
+2. 画面の手順で、アクセシビリティ権限を許可する。
+3. `CapsLock` をすぐ離して `Esc` になることを確認する。
+4. 確認が成功してから、往復ショートカットを有効にする。
 
-### macOS
+ネイティブアプリを使わず、外部ツールで動作させる方法は代替導線とする。
 
-Karabiner-Elements を使います。手順は [mac/README.md](mac/README.md)。
+- Karabiner-Elements を使う場合は [macOSの代替手順](mac/README.md) の「代替: Karabiner-Elements」へ進む。
+- Windows は [Windowsの代替手順](windows/README.md)。Kanata か AutoHotkey のどちらか一方だけを使う。
 
-- コア設定: [`mac/karabiner/hyper-capslock.json`](mac/karabiner/hyper-capslock.json)
-  - CapsLock の Tap=Esc / Hold=Hyper と、Hyper+HJKL などの移動レイヤーを含みます
-  - アプリ切替・ウィンドウ配置は Raycast 側に Hyper ショートカットとして割り当てます（[mac/raycast/README.md](mac/raycast/README.md)）
+最初の成功は、`CapsLock` をすぐ離して `Esc` になること。失敗したまま次へ進まない。
 
-### Windows
+## 壊さないために
 
-Kanata（推奨）または AutoHotkey v2 を使います。手順は [windows/README.md](windows/README.md)。
+Hyper は、どのアプリともぶつからない、とは言えない。
 
-- Kanata: [`windows/kanata/hyper-capslock.kbd`](windows/kanata/hyper-capslock.kbd) — Tap=Esc / Hold=Hyper のコア
-- AutoHotkey: [`windows/autohotkey/HyperCapsLock.ahk`](windows/autohotkey/HyperCapsLock.ahk) — コア＋バイブコーディング用ホットキー一式
+- Windows の `Ctrl+Alt+Shift+Win` は Office キーとして予約されている。この設定は、その4つをまとめて送らない。
+- Cursor の `Command+L` / `Ctrl+L` はサイドパネルの開閉で、開いていると閉じることがある。
+- 変更があるときの `Command+Enter` は全部承認、`Command+Shift+Backspace` は全部却下でもある。どちらも送らない。
 
-## 設計原則
+判断の記録は [判断の記録](docs/decisions.md)。
 
-1. **最初から全部入れない。** スターター8点だけ。指が覚えたら第2弾を足す。
-2. **Hyper は衝突しない。** 通常のアプリは Hyper を使わないので、既存ショートカットを壊さない。
-3. **割り当ては自分の作業に寄せる。** エディタが Cursor ではなく VS Code なら、`Hyper + 1` の先を変えるだけ。
 
 ## AIエージェントから使う（L2）
 
-CLI が共有芯を通して状態取得・導入・検証まで実行できます。正本は [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md)、目録は [docs/agent-manifest.json](docs/agent-manifest.json)、操作カタログは [docs/AGENT_OPERATIONS.md](docs/AGENT_OPERATIONS.md)。
+CLI が共有芯を通して、設定ファイルの状態取得・導入・検証を実行できる。割り当ての正本は上の割り当て表（docs/keymap.md）で、機械可読版は config/bindings.json。
+正本ガイドは [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md)、目録は [docs/agent-manifest.json](docs/agent-manifest.json)、操作カタログは [docs/AGENT_OPERATIONS.md](docs/AGENT_OPERATIONS.md)。
 
 ```bash
 python3 cli/hypercapslock.py status --json
@@ -74,6 +61,4 @@ python3 cli/hypercapslock.py install --platform mac --dry-run --json
 python3 cli/hypercapslock.py verify --json
 ```
 
-## ライセンス
-
-MIT
+ライセンスは MIT。

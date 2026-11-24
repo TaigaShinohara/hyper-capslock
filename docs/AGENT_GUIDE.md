@@ -4,7 +4,7 @@ AI エージェント向けの使い方メモ。このファイルが、この�
 
 ## アプリの目的（1行）
 
-CapsLock を単押し=Esc／長押し=Hyper に変え、AIチャット⇄エディタ⇄プレビューの往復を速くするキー配置一式。
+CapsLock を単押し=Esc／長押し=Hyper に変え、AIチャット⇄エディタ⇄プレビューの往復を速くするキー配置一式。割り当ての正本は docs/keymap.md（本ガイドの bindings はその機械可読版で、Hyper+Enter/Space/V/R/S は『送らない・無い』として excluded に明記）。macOS ネイティブアプリ (mac/HyperCapsLockApp) 自体の操作は本CLIの対象外（アプリは人間が画面で使う）。
 
 ## 到達レベル
 

@@ -1,17 +1,27 @@
-# Raycast 側の割り当て（macOS）
+# Raycast は任意（macOS）
 
-Karabiner が作る Hyper キーを、Raycast のホットキーとして登録します。
-Raycast: https://www.raycast.com/
+ウィンドウを左右に分けるときだけ使う。チャット、パネル、アプリの切り替えは Karabiner 側で行う。
+Raycast の Hyper Key はオンにしない。オンにすると `CapsLock` の扱いが Karabiner と重なる。公式のトラブルシューティングでも、Karabiner が同じキーを取ると Hyper Key は効かない、とある。
 
-| キー | Raycast で割り当てる先 |
-|---|---|
-| `Hyper + 1` | アプリケーション「Cursor」（使っているエディタに変える） |
-| `Hyper + 2` | アプリケーション「Google Chrome」 |
-| `Hyper + 3` | アプリケーション「Terminal」または「Ghostty / Warp」 |
-| `Hyper + Q` | Window Management → Left Half |
-| `Hyper + W` | Window Management → Right Half |
-| `Hyper + Space` | Raycast 本体を開く（デフォルトの Spotlight を置き換え） |
-| `Hyper + V` | Clipboard History |
+https://manual.raycast.com/hyper-key
 
-登録方法: Raycast Settings → Extensions / Applications で対象を選び、
-`Record Hotkey` で CapsLock を押しながら対象キーを押すだけ。
+`Hyper+Space` を Raycast に登録しても、Spotlight（`Command+Space`）はそのまま残る。置き換えではない。
+
+Mac と Windows の実機では、まだ押して確認していない。
+
+## 登録してよいキー
+
+Karabiner のルール `1. コア` が有効で、EventViewer の確認が終わってから登録する。
+ルール `7. 任意`（Q、W、H を捨てる）が有効だと、Raycast からは見えない。登録する前にルール `7. 任意` は外す。
+
+| 操作 | 登録先 |
+| --- | --- |
+| `Hyper+Q` | 「Window Management」→「Left Half」 |
+| `Hyper+W` | 「Window Management」→「Right Half」 |
+
+登録は、「Raycast Settings」で対象を選び、「Record Hotkey」のあいだに `CapsLock` を押したまま Q または W を押す。
+
+> [!WARNING]
+> macOS では、割り当てるまで Q、W、H を押さない。`Command+Q` は終了、`Command+W` は閉じる、`Command+H` は隠す、という動作をアプリが持つことがある。ほかの修飾が付いていてもそうなるかは未確認。
+
+クリップボード履歴やランチャーを足すときも、1個ずつ、同じ手順で足す。最初に入れるキーには含めていない。

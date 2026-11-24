@@ -1,77 +1,141 @@
 #Requires AutoHotkey v2.0
-; ============================================================
-; ハイパーCapsLock — AI開発のコックピットにする
-; CapsLock: tap = Esc, hold = Hyper (Ctrl+Alt+Shift+Win)
-; AutoHotkey v2 用。Kanata を使わない場合のフルセット版。
-; ============================================================
+#SingleInstance Force
 
+; ハイパーCapsLock — Windows 用 AutoHotkey v2
+; 割り当て表の正本は docs/keymap.md。Kanata と同時には使わない。
+;
+; CapsLock の位置（スキャンコード 03A）を押しているあいだだけ、
+; 下のキーが別のショートカットを送る。
+; Ctrl+Alt+Shift+Win は押した瞬間にも、離したときにも送らない。
+;
+; ドキュメント:
+;   https://www.autohotkey.com/docs/v2/KeyList.htm
+;   https://www.autohotkey.com/docs/v2/lib/KeyWait.htm
+;   https://www.autohotkey.com/docs/v2/lib/InputHook.htm
+;   https://www.autohotkey.com/docs/v2/FAQ.htm
+
+InstallKeybdHook
 SetCapsLockState "AlwaysOff"
 
-; --- Core: CapsLock -> Hyper / Esc -------------------------
-*CapsLock::
-{
-    Send "{Ctrl down}{Alt down}{Shift down}{Win down}"
-    KeyWait "CapsLock"
-    Send "{Ctrl up}{Alt up}{Shift up}{Win up}"
-    if (A_PriorKey = "CapsLock")
+; 200 と 60 秒はこちらの選択。OS が決めた秒数ではない。
+; 60 秒は、キーを離した通知が来ない配列で Hyper が戻らなくなるのを防ぐ上限。
+global TapMs := 200
+global HoldCapMs := 60000
+global Phase2 := false
+global hyperDown := false
+global hyperUsed := false
+
+kanataHit := ""
+; v1.12.0 の Windows x64 zip で確認した名前。arm64 や、名前を変えた exe は検出できない。
+for name in ["kanata_windows_gui_winIOv2_x64.exe", "kanata_windows_tty_winIOv2_x64.exe", "kanata_windows_gui_winIOv2_cmd_allowed_x64.exe", "kanata_windows_tty_winIOv2_cmd_allowed_x64.exe", "kanata_windows_gui_wintercept_x64.exe", "kanata_windows_tty_wintercept_x64.exe", "kanata_windows_gui_wintercept_cmd_allowed_x64.exe", "kanata_windows_tty_wintercept_cmd_allowed_x64.exe"] {
+    if ProcessExist(name) {
+        kanataHit := name
+        break
+    }
+}
+if (kanataHit != "") {
+    MsgBox "Kanata（" kanataHit "）が動いています。`nCapsLock はどちらか一方だけにしてください。このスクリプトは終了します。"
+    ExitApp
+}
+
+*sc03A::HyperCapsDown()
+
+#HotIf hyperDown
+*1:: {
+    HyperSend("#1")
+}
+*2:: {
+    HyperSend("#2")
+}
+*3:: {
+    HyperSend("#3")
+}
+*q:: {
+    HyperSend("#{Left}")
+}
+*w:: {
+    HyperSend("#{Right}")
+}
+*c:: {
+    HyperChat()
+}
+*t:: {
+    HyperPanel()
+}
+#HotIf
+
+; 第2弾。最初は Phase2 が false なので動かない。
+; 足すときは true にして、いらない行をコメントにしてから、スクリプトを読み込み直す。
+#HotIf hyperDown && Phase2
+*h:: {
+    HyperSend("{Left}")
+}
+*j:: {
+    HyperSend("{Down}")
+}
+*k:: {
+    HyperSend("{Up}")
+}
+*l:: {
+    HyperSend("{Right}")
+}
+*a:: {
+    HyperSend("{Home}")
+}
+*e:: {
+    HyperSend("{End}")
+}
+*b:: {
+    HyperSend("^{Left}")
+}
+*f:: {
+    HyperSend("^{Right}")
+}
+#HotIf
+
+; CapsLock 以外のキーが押されたら、離したときの Esc は出さない。
+; 割り当てたキーだけでなく、Space や、第2弾を入れる前の H も対象。
+; V はキーをアプリへ届ける。L0 は文字を溜めない。I1 はスクリプト自身の Send を数えない。
+; https://www.autohotkey.com/docs/v2/lib/InputHook.htm
+NoteOtherKey(ih, vk, sc) {
+    global hyperUsed
+    if (sc = 0x3A || vk = 0x14)
+        return
+    hyperUsed := true
+}
+
+HyperCapsDown() {
+    global hyperDown, hyperUsed, TapMs, HoldCapMs
+    hyperDown := true
+    hyperUsed := false
+    watch := InputHook("V L0 I1")
+    watch.OnKeyDown := NoteOtherKey
+    watch.NotifyNonText := true
+    watch.KeyOpt("{All}", "N")
+    watch.Start()
+    start := A_TickCount
+    released := KeyWait("sc03A", "T" . (HoldCapMs // 1000))
+    watch.Stop()
+    hyperDown := false
+    if (released && !hyperUsed && (A_TickCount - start) < TapMs)
         Send "{Esc}"
 }
 
-; Hyper = ^!+#  (Ctrl + Alt + Shift + Win)
-
-; --- A. AIとの往復 ------------------------------------------
-; Hyper + C : AIチャット欄へ (Cursor / VS Code: Ctrl+Shift+L 相当)
-^!+#c::Send "^+l"
-
-; Hyper + Enter : AIへ送信 (Ctrl+Enter 相当に寄せる。アプリにより調整可)
-^!+#Enter::Send "^{Enter}"
-
-; Hyper + V : クリップボード履歴 (Win+V を Hyper 経由で)
-^!+#v::Send "#v"
-
-; --- B. 確認への移動 ----------------------------------------
-; アプリ固定席は環境に合わせてパス/タイトルを書き換えること。
-; 例は「すでに起動しているウィンドウを前面化」する形。
-^!+#1::
-{
-    if WinExist("ahk_exe Code.exe") || WinExist("ahk_exe Cursor.exe")
-        WinActivate
-}
-^!+#2::
-{
-    if WinExist("ahk_exe chrome.exe")
-        WinActivate
-}
-^!+#3::
-{
-    if WinExist("ahk_exe WindowsTerminal.exe")
-        WinActivate
+HyperSend(keys) {
+    global hyperUsed := true
+    Send keys
 }
 
-; Hyper + Q / W : ウィンドウを左半分 / 右半分 (Win+矢印で代用)
-^!+#q::Send "#{Left}"
-^!+#w::Send "#{Right}"
+HyperChat() {
+    global hyperUsed := true
+    if WinActive("ahk_exe Cursor.exe")
+        Send "^{l}"
+    else
+        Send "#1"
+}
 
-; Hyper + R : 再読み込み
-^!+#r::Send "^{F5}"
-
-; --- C. 補助 -------------------------------------------------
-; Hyper + T : ターミナル開閉 (VS Code: Ctrl+`)
-^!+#t::Send "^``"
-
-; Hyper + Space : ランチャー (PowerToys Run / Flow Launcher を想定し Win+S ではない)
-; 使っているランチャーの起動キーに合わせて変更すること。デフォルトは Alt+Space を送る。
-^!+#Space::Send "!{Space}"
-
-; Hyper + S : スクリーンショット (Win+Shift+S)
-^!+#s::Send "#+s"
-
-; --- 移動レイヤー (第2弾) ------------------------------------
-^!+#h::Send "{Left}"
-^!+#j::Send "{Down}"
-^!+#k::Send "{Up}"
-^!+#l::Send "{Right}"
-^!+#a::Send "{Home}"
-^!+#e::Send "{End}"
-^!+#b::Send "^{Left}"
-^!+#f::Send "^{Right}"
+HyperPanel() {
+    global hyperUsed := true
+    if WinActive("ahk_exe Cursor.exe") || WinActive("ahk_exe Code.exe")
+        Send "^{j}"
+}

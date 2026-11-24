@@ -1,27 +1,70 @@
-;; ハイパーCapsLock — Kanata (Windows / Linux でも使える)
-;; CapsLock: tap = Esc, hold = Hyper (Ctrl+Alt+Shift+Win)
+;; ハイパーCapsLock — Windows 用 Kanata
+;; 割り当て表の正本は docs/keymap.md。このファイルは Windows の推奨経路。
 ;;
-;; 使い方: kanata.exe --cfg hyper-capslock.kbd
-;; ドキュメント: https://github.com/jtroo/kanata
+;; CapsLock を押しているあいだは「hyper」という別の意味の一覧に切り替える。
+;; Ctrl+Alt+Shift+Win は一度も送らない。離しただけでも Office キーにならない。
+;;
+;; 使い方は windows/README.md。
+;; zip の中の実行ファイル名は版で変わるので、ここには書かない。
+;; 選ぶものは、名前に winIOv2 と gui があり、wintercept と cmd_allowed が無いもの。
+;; 先に --check を付けて、エラーが無いことだけ見る。
+;; AutoHotkey とは同時に使わない。
+;;
+;; ドキュメント: https://github.com/jtroo/kanata/blob/v1.12.0/docs/config.adoc
 
 (defcfg
-  process-unmapped-keys yes
+  ;; 一覧に無いキーでも、長押しの判定を早く切り替えるために見る。
+  ;; 右 Alt は Kanata の既知の不具合があるので、そこだけ触らない。
+  process-unmapped-keys (all-except ralt)
 )
 
 (defsrc
   caps
+  1    2    3
+  q    w
+  c    t
+  h    j    k    l
+  a    e    b    f
 )
 
 (defvar
-  tap-time 200
-  hold-time 200
+  tap-ms 200
+  hold-ms 200
 )
 
 (defalias
-  ;; tap-hold: 単押しは esc、長押しは全モディファイア同時押し (= Hyper)
-  cap (tap-hold $tap-time $hold-time esc (multi lsft lctl lalt lmet))
+  ;; 200ミリ秒未満で、ほかのキーを押さずに離すと Esc。
+  ;; tap-hold-press は、別のキーを押した時点で長押し側になる。
+  ;; そのとき Esc は重ねて出ない。Space のように一覧に無いキーも、
+  ;; process-unmapped-keys があるので同じ。右 Alt だけは対象外
+  ;; （Kanata の AltGr の既知の不具合のため）。
+  ;; 200 はこちらの選択で、OS が決めた秒数ではない。
+  cap (tap-hold-press $tap-ms $hold-ms esc (layer-while-held hyper))
 )
 
 (deflayer base
   @cap
+  1    2    3
+  q    w
+  c    t
+  h    j    k    l
+  a    e    b    f
+)
+
+;; hyper の行は、base と同じ順番。
+;; C-l は Ctrl+L。C-j は Ctrl+J。
+;; M-1 は Win+1。M-left は Win+←。M-rght は Win+→。
+;; XX は何もしない。第2弾を足すときは、そのマスの XX だけを置き換える。
+;;
+;;   h → left     j → down     k → up       l → rght
+;;   a → home     e → end      b → C-left   f → C-rght
+;;
+;; Enter、S、R、Space、V は最初から割り当てない。
+(deflayer hyper
+  XX
+  M-1  M-2  M-3
+  M-left M-rght
+  C-l  C-j
+  XX   XX   XX   XX
+  XX   XX   XX   XX
 )
