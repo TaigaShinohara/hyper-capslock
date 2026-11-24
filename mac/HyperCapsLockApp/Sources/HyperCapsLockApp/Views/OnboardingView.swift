@@ -158,11 +158,19 @@ struct OnboardingView: View {
 
             HStack {
                 Spacer()
-                Button(appState.escTestSuccessCount > 0 ? "次へ" : "スキップ") {
-                    appState.advanceOnboarding(to: .starter)
+                if appState.escTestSuccessCount > 0 {
+                    Button("次へ") {
+                        appState.advanceOnboarding(to: .starter)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                } else {
+                    Button("権限と設定を再確認") {
+                        appState.recheckSystemModifiersAndRuntime()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
             }
         }
     }
@@ -217,6 +225,7 @@ struct OnboardingView: View {
                 isEnabled: appState.config.isEnabled,
                 isAccessibilityTrusted: appState.isAccessibilityTrusted,
                 isTapRunning: appState.isTapRunning,
+                isHidutilApplied: appState.isHidutilApplied,
                 isHoldingHyper: appState.isHoldingHyper,
                 hasModifierConflict: !appState.capsLockConflicts.isEmpty,
                 jisEisuuEnabled: appState.config.jisEisuuEnabled,

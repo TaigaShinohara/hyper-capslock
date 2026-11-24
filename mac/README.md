@@ -1,6 +1,19 @@
 # macOS
 
-Karabiner-Elements を使う。Raycast の Hyper Key はオンにしない。公式の説明では、Karabiner などが同じキーを先に取ると Hyper Key は効かない。
+推奨は、このリポジトリのネイティブアプリを使うこと。アプリが権限、最初の `Esc` 確認、往復ショートカットを順番に案内する。
+
+## 推奨: ネイティブアプリ
+
+1. `mac/HyperCapsLockApp/dist/HyperCapsLock.app` を開く。
+2. 「システム設定」が開いたら、一覧の「Hyper CapsLock」を許可する。
+3. `CapsLock` をすぐ離す。成功が表示されるまで次へ進まない。
+4. 往復ショートカットを有効にする。
+
+失敗したときは、画面の「再確認」「再試行」「標準に戻す」「手順を見る」を使う。
+
+## 代替: Karabiner-Elements
+
+ネイティブアプリではなく Karabiner-Elements を使う場合だけ、次の手順を使う。Raycast の Hyper Key はオンにしない。公式の説明では、Karabiner などが同じキーを先に取ると Hyper Key は効かない。
 
 https://manual.raycast.com/hyper-key
 

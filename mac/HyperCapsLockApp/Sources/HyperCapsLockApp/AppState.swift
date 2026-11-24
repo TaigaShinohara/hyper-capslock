@@ -4,11 +4,22 @@ import HyperCapsLockCore
 import Observation
 import ServiceManagement
 
+struct RuntimeIssue: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let detail: String
+}
+
 /// アプリ全体の状態・サービス連携・永続化・ライフサイクルを統括する Store。
 @MainActor
 @Observable
 final class AppState {
     private static let configStorageKey = "HyperCapsLock.Config.v1"
+    private static let permissionIssueID = "permission"
+    private static let eventTapIssueID = "event-tap"
+    private static let hidutilIssueID = "hidutil"
+    private static let appActivationIssueID = "app-activation"
+    private static let launchAtLoginIssueID = "launch-at-login"
 
     var config: HyperConfig {
         didSet {
@@ -28,6 +39,7 @@ final class AppState {
     var escTestSuccessCount: Int = 0
     var starterTestSuccessCount: Int = 0
     var statusBannerMessage: String?
+    var runtimeIssues: [RuntimeIssue] = []
 
     private let hidutilService = HidutilService()
     private let eventTapService = EventTapService()
@@ -122,11 +134,33 @@ final class AppState {
     func emergencyResetCapsLock() {
         config.isEnabled = false
         eventTapService.stop()
-        hidutilService.restoreOriginalMapping(forceClearAll: true)
+        let restored = hidutilService.restoreOriginalMapping(forceClearAll: true)
         isTapRunning = false
         isHidutilApplied = hidutilService.isRemapCurrentlyApplied()
         isHoldingHyper = false
-        statusBannerMessage = "CapsLock を macOS 標準の動作に戻しました。"
+        runtimeIssues.removeAll()
+        if restored {
+            statusBannerMessage = "CapsLock を macOS 標準の動作に戻しました。"
+        } else {
+            setRuntimeIssue(
+                id: Self.hidutilIssueID,
+                title: "CapsLock を標準に戻せませんでした",
+                detail: "再試行するか、macOS の「修飾キー」設定で CapsLock を標準に戻してください。"
+            )
+            statusBannerMessage = nil
+        }
+    }
+
+    func retryRuntime() {
+        clearRuntimeIssue(id: Self.appActivationIssueID)
+        refreshInstalledApps()
+        refreshAccessibilityAndRuntime()
+    }
+
+    func openSetupGuide() {
+        if let url = URL(string: "https://github.com/TaigaShinohara/hyper-capslock/blob/main/mac/README.md") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func toggleEnabled() {
@@ -172,7 +206,16 @@ final class AppState {
 
         eventTapService.onActivateApp = { [weak self] target in
             Task { @MainActor [weak self] in
-                self?.appDiscovery.activate(target)
+                guard let self else { return }
+                if self.appDiscovery.activate(target) {
+                    self.clearRuntimeIssue(id: Self.appActivationIssueID)
+                } else {
+                    self.setRuntimeIssue(
+                        id: Self.appActivationIssueID,
+                        title: "アプリを開けませんでした",
+                        detail: "「\(target.name)」が見つかりません。設定画面で別のアプリを選ぶか、アプリ一覧を再読み込みしてください。"
+                    )
+                }
             }
         }
 
@@ -276,6 +319,16 @@ final class AppState {
         let trustChanged = trusted != isAccessibilityTrusted
         isAccessibilityTrusted = trusted
 
+        if trusted {
+            clearRuntimeIssue(id: Self.permissionIssueID)
+        } else {
+            setRuntimeIssue(
+                id: Self.permissionIssueID,
+                title: "アクセシビリティ権限が必要です",
+                detail: "キー入力を安全に変換するには、システム設定で「Hyper CapsLock」を許可してください。"
+            )
+        }
+
         if trusted && config.onboardingStep == .permissions {
             config.onboardingStep = .testEsc
         }
@@ -286,25 +339,64 @@ final class AppState {
                 let started = eventTapService.start()
                 isTapRunning = started
                 if started {
+                    clearRuntimeIssue(id: Self.eventTapIssueID)
                     isHidutilApplied = hidutilService.applyCapsLockRemap()
+                    if isHidutilApplied {
+                        clearRuntimeIssue(id: Self.hidutilIssueID)
+                    } else {
+                        setRuntimeIssue(
+                            id: Self.hidutilIssueID,
+                            title: "CapsLock の変換を適用できませんでした",
+                            detail: "キー監視は動いていますが、CapsLock とショートカットの変換を有効にできません。再試行するか、標準に戻してください。"
+                        )
+                    }
                     statusBannerMessage = nil
+                } else {
+                    setRuntimeIssue(
+                        id: Self.eventTapIssueID,
+                        title: "キー監視を開始できませんでした",
+                        detail: "アクセシビリティ権限の確認後、再試行してください。権限がすでにある場合は、Mac を再起動してから戻してください。"
+                    )
                 }
             } else if conflictsCleared || !hidutilService.isRemapCurrentlyApplied() {
                 isHidutilApplied = hidutilService.applyCapsLockRemap()
+                if isHidutilApplied {
+                    clearRuntimeIssue(id: Self.hidutilIssueID)
+                } else {
+                    setRuntimeIssue(
+                        id: Self.hidutilIssueID,
+                        title: "CapsLock の変換を適用できませんでした",
+                        detail: "再試行するか、標準に戻してください。"
+                    )
+                }
             }
         } else {
             if isTapRunning {
                 eventTapService.stop()
                 isTapRunning = false
+                clearRuntimeIssue(id: Self.eventTapIssueID)
             }
             if isHidutilApplied {
                 hidutilService.restoreOriginalMapping(forceClearAll: false)
                 isHidutilApplied = false
             }
+            clearRuntimeIssue(id: Self.hidutilIssueID)
             if trustChanged && !trusted && config.isEnabled {
                 statusBannerMessage = "アクセシビリティ権限がオフになったため停止しました。"
             }
         }
+    }
+
+    private func setRuntimeIssue(id: String, title: String, detail: String) {
+        if let index = runtimeIssues.firstIndex(where: { $0.id == id }) {
+            runtimeIssues[index] = RuntimeIssue(id: id, title: title, detail: detail)
+        } else {
+            runtimeIssues.append(RuntimeIssue(id: id, title: title, detail: detail))
+        }
+    }
+
+    private func clearRuntimeIssue(id: String) {
+        runtimeIssues.removeAll { $0.id == id }
     }
 
     private func syncEngineAndServices(previous: HyperConfig) {
@@ -326,11 +418,17 @@ final class AppState {
         do {
             if enabled {
                 try SMAppService.mainApp.register()
+                clearRuntimeIssue(id: Self.launchAtLoginIssueID)
             } else {
                 try SMAppService.mainApp.unregister()
+                clearRuntimeIssue(id: Self.launchAtLoginIssueID)
             }
         } catch {
-            statusBannerMessage = "ログイン時の起動設定を変更できませんでした（\(error.localizedDescription)）。"
+            setRuntimeIssue(
+                id: Self.launchAtLoginIssueID,
+                title: "ログイン時の起動を変更できませんでした",
+                detail: "\(error.localizedDescription) 再試行するか、ログイン時の起動を OFF にしてください。"
+            )
         }
     }
 

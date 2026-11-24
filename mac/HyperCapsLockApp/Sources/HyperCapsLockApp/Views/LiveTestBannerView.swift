@@ -6,6 +6,7 @@ struct LiveTestBannerView: View {
     let isEnabled: Bool
     let isAccessibilityTrusted: Bool
     let isTapRunning: Bool
+    let isHidutilApplied: Bool
     let isHoldingHyper: Bool
     let hasModifierConflict: Bool
     let jisEisuuEnabled: Bool
@@ -47,7 +48,7 @@ struct LiveTestBannerView: View {
 
     private var statusColor: Color {
         if !isEnabled { return .secondary }
-        if !isAccessibilityTrusted || !isTapRunning || hasModifierConflict { return .orange }
+        if !isAccessibilityTrusted || !isTapRunning || !isHidutilApplied || hasModifierConflict { return .orange }
         if isHoldingHyper { return .accentColor }
         return .green
     }
@@ -56,6 +57,7 @@ struct LiveTestBannerView: View {
         if !isEnabled { return "一時停止中" }
         if !isAccessibilityTrusted { return "権限の許可待ち" }
         if !isTapRunning { return "準備中..." }
+        if !isHidutilApplied { return "CapsLock の変換に失敗" }
         if isHoldingHyper { return "次のキーを押してください" }
         if let latest = recentFeedbacks.first {
             return latest.summary
@@ -68,7 +70,7 @@ struct LiveTestBannerView: View {
 
     private var secondaryText: String? {
         if !isEnabled { return "CapsLock は標準動作" }
-        if !isAccessibilityTrusted || !isTapRunning { return nil }
+        if !isAccessibilityTrusted || !isTapRunning || !isHidutilApplied { return nil }
         if isHoldingHyper { return "長押し中" }
         if let latest = recentFeedbacks.first {
             return latest.detail

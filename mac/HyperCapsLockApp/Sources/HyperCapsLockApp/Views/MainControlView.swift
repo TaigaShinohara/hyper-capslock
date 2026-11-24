@@ -16,7 +16,9 @@ struct MainControlView: View {
                     statusBanner(banner)
                 }
 
-                if !appState.isAccessibilityTrusted {
+                if !appState.runtimeIssues.isEmpty {
+                    runtimeIssuesCard
+                } else if !appState.isAccessibilityTrusted {
                     permissionWarningCard
                 }
 
@@ -33,6 +35,7 @@ struct MainControlView: View {
                         isEnabled: appState.config.isEnabled,
                         isAccessibilityTrusted: appState.isAccessibilityTrusted,
                         isTapRunning: appState.isTapRunning,
+                        isHidutilApplied: appState.isHidutilApplied,
                         isHoldingHyper: appState.isHoldingHyper,
                         hasModifierConflict: !appState.capsLockConflicts.isEmpty,
                         jisEisuuEnabled: appState.config.jisEisuuEnabled,
@@ -81,6 +84,42 @@ struct MainControlView: View {
         }
         .padding(10)
         .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var runtimeIssuesCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(appState.runtimeIssues) { issue in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(issue.title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(issue.detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            HStack(spacing: 8) {
+                Button("再試行") {
+                    appState.retryRuntime()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+
+                Button("標準に戻す") {
+                    appState.emergencyResetCapsLock()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+
+                Button("手順を見る") {
+                    appState.openSetupGuide()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var permissionWarningCard: some View {

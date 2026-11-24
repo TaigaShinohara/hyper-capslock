@@ -1,5 +1,7 @@
 # Windows
 
+ネイティブアプリは macOS 専用。この内容は Windows 用の代替導線です。
+
 Kanata か AutoHotkey v2 の、どちらか一方だけを使う。同時には使わない。
 両方とも、`CapsLock` を押した瞬間に `Ctrl+Alt+Shift+Win` を送らない。離しただけでも送らない。
 

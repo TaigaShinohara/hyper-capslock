@@ -23,14 +23,21 @@ Mac と Windows の実機では、まだ押して確認していない。
 
 割り当て表の正本は [割り当て表](docs/keymap.md)。ほかの文書はそこへリンクする。
 
-## 入れ方
+## 入れ方（macOS）
 
-1個ずつ足す。最初から全部は入れない。
+macOS は、まずネイティブアプリを使う。最初に入れるキーはアプリ内で確認できる。
 
-- [macOS の手順](mac/README.md)
-- [Windows の手順](windows/README.md)。Kanata か AutoHotkey の、どちらか一方。
+1. [macOSアプリを入れる手順](mac/README.md) でアプリを起動する。
+2. 画面の手順で、アクセシビリティ権限を許可する。
+3. `CapsLock` をすぐ離して `Esc` になることを確認する。
+4. 確認が成功してから、往復ショートカットを有効にする。
 
-最初の成功は、`CapsLock` をすぐ離して `Esc` になること。そこを確認してから、次のキーを足す。
+ネイティブアプリを使わず、外部ツールで動作させる方法は代替導線とする。
+
+- Karabiner-Elements を使う場合は [macOSの代替手順](mac/README.md) の「代替: Karabiner-Elements」へ進む。
+- Windows は [Windowsの代替手順](windows/README.md)。Kanata か AutoHotkey のどちらか一方だけを使う。
+
+最初の成功は、`CapsLock` をすぐ離して `Esc` になること。失敗したまま次へ進まない。
 
 ## 壊さないために
 
@@ -41,5 +48,17 @@ Hyper は、どのアプリともぶつからない、とは言えない。
 - 変更があるときの `Command+Enter` は全部承認、`Command+Shift+Backspace` は全部却下でもある。どちらも送らない。
 
 判断の記録は [判断の記録](docs/decisions.md)。
+
+
+## AIエージェントから使う（L2）
+
+CLI が共有芯を通して、設定ファイルの状態取得・導入・検証を実行できる。割り当ての正本は上の割り当て表（docs/keymap.md）で、機械可読版は config/bindings.json。
+正本ガイドは [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md)、目録は [docs/agent-manifest.json](docs/agent-manifest.json)、操作カタログは [docs/AGENT_OPERATIONS.md](docs/AGENT_OPERATIONS.md)。
+
+```bash
+python3 cli/hypercapslock.py status --json
+python3 cli/hypercapslock.py install --platform mac --dry-run --json
+python3 cli/hypercapslock.py verify --json
+```
 
 ライセンスは MIT。
