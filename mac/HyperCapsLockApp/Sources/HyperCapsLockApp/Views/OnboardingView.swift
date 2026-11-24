@@ -4,16 +4,18 @@ import SwiftUI
 /// 初心者向けの 3 ステップ初期セットアップ画面。
 struct OnboardingView: View {
     @Bindable var appState: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                headerView
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Hyper CapsLock")
+                .font(.title3.bold())
 
-                stepIndicator
+            stepIndicator
 
-                Divider()
+            Divider()
 
+            Group {
                 switch appState.config.onboardingStep {
                 case .permissions:
                     step1PermissionsView
@@ -22,35 +24,51 @@ struct OnboardingView: View {
                 case .starter, .completed:
                     step3StarterView
                 }
-
-                Spacer(minLength: 0)
             }
-            .padding(24)
-        }
-        .frame(width: 560, height: 560)
-    }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: appState.config.onboardingStep)
 
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("ハイパーCapsLock")
-                .font(.title2.bold())
+            Spacer(minLength: 0)
         }
+        .padding(22)
+        .frame(width: 480, height: 470)
     }
 
     private var stepIndicator: some View {
-        HStack(spacing: 12) {
-            stepBadge(number: 1, title: "権限を許可", active: appState.config.onboardingStep == .permissions, done: appState.isAccessibilityTrusted)
-            Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-            stepBadge(number: 2, title: "Esc を試す", active: appState.config.onboardingStep == .testEsc, done: appState.config.onboardingStep == .starter || appState.config.onboardingStep == .completed)
-            Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-            stepBadge(number: 3, title: "往復を設定", active: appState.config.onboardingStep == .starter, done: appState.config.onboardingStep == .completed)
+        HStack(spacing: 10) {
+            stepBadge(
+                number: 1,
+                title: "権限",
+                active: appState.config.onboardingStep == .permissions,
+                done: appState.isAccessibilityTrusted
+            )
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+            stepBadge(
+                number: 2,
+                title: "Esc 確認",
+                active: appState.config.onboardingStep == .testEsc,
+                done: appState.config.onboardingStep == .starter || appState.config.onboardingStep == .completed
+            )
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+            stepBadge(
+                number: 3,
+                title: "往復",
+                active: appState.config.onboardingStep == .starter,
+                done: appState.config.onboardingStep == .completed
+            )
         }
     }
 
     private func stepBadge(number: Int, title: String, active: Bool, done: Bool) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 5) {
             Image(systemName: done ? "checkmark.circle.fill" : "\(number).circle.fill")
                 .foregroundStyle(done ? .green : (active ? Color.accentColor : .secondary))
+                .accessibilityHidden(true)
             Text(title)
                 .font(.subheadline.weight(active ? .semibold : .regular))
                 .foregroundStyle(active || done ? .primary : .secondary)
@@ -60,18 +78,39 @@ struct OnboardingView: View {
     // MARK: - Step 1: Permissions
 
     private var step1PermissionsView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("ステップ 1：権限を許可")
+        VStack(alignment: .leading, spacing: 14) {
+            Text("アクセシビリティを許可")
                 .font(.headline)
 
+            Text("キー変換のために必要です。外部通信は行いません。")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Label("下のボタンでシステム設定を開く", systemImage: "1.circle")
+                Label("「Hyper CapsLock」を ON にする", systemImage: "2.circle")
+                Label("自動で次のステップへ進みます", systemImage: "3.circle")
+            }
+            .font(.subheadline)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+
             HStack {
-                Button("システム設定を開いて許可する") {
+                Button("システム設定を開く") {
                     appState.requestAccessibilityPermission()
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
 
                 Spacer()
+
+                if appState.isAccessibilityTrusted {
+                    Button("次へ") {
+                        appState.advanceOnboarding(to: .testEsc)
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
         }
     }
@@ -79,32 +118,35 @@ struct OnboardingView: View {
     // MARK: - Step 2: Test Esc
 
     private var step2TestEscView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("ステップ 2：CapsLock を押してすぐ離す")
+        VStack(alignment: .leading, spacing: 14) {
+            Text("CapsLock を 1 回押して離す")
                 .font(.headline)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 if appState.escTestSuccessCount > 0 {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 40))
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 36))
                         .foregroundStyle(.green)
-                    Text("成功！Esc を \(appState.escTestSuccessCount) 回検出しました")
+                        .accessibilityHidden(true)
+                    Text("Esc を検出しました")
                         .font(.headline)
                         .foregroundStyle(.green)
                 } else {
-                    Image(systemName: "keyboard")
-                        .font(.system(size: 36))
-                        .foregroundStyle(Color.accentColor)
-                    Text("CapsLock を 1 回押してください")
-                        .font(.headline)
+                    KeyCapView(label: "CapsLock", highlighted: true)
+                        .scaleEffect(1.25)
+                        .padding(.vertical, 4)
+                    Text("短く押すと Esc になります")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity)
             .padding(24)
             .background(
-                (appState.escTestSuccessCount > 0 ? Color.green.opacity(0.1) : Color.secondary.opacity(0.08)),
-                in: RoundedRectangle(cornerRadius: 12)
+                appState.escTestSuccessCount > 0 ? Color.green.opacity(0.1) : Color.primary.opacity(0.05),
+                in: RoundedRectangle(cornerRadius: 10)
             )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: appState.escTestSuccessCount > 0)
 
             if !appState.capsLockConflicts.isEmpty {
                 ModifierConflictWarningCard(
@@ -137,32 +179,37 @@ struct OnboardingView: View {
 
     private var step3StarterView: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("ステップ 3：往復ショートカット")
+            Text("押したままキーで切り替え")
                 .font(.headline)
 
             Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
                 GridRow {
-                    Text("CapsLock を押して 1").font(.system(.body, design: .monospaced).bold())
+                    KeyComboView(key: "1")
                     Text(appState.config.slot1App.name)
+                        .font(.subheadline)
                 }
                 GridRow {
-                    Text("CapsLock を押して 2").font(.system(.body, design: .monospaced).bold())
+                    KeyComboView(key: "2")
                     Text(appState.config.slot2App.name)
+                        .font(.subheadline)
                 }
                 GridRow {
-                    Text("CapsLock を押して 3").font(.system(.body, design: .monospaced).bold())
+                    KeyComboView(key: "3")
                     Text(appState.config.slot3App.name)
+                        .font(.subheadline)
                 }
                 GridRow {
-                    Text("CapsLock を押して C").font(.system(.body, design: .monospaced).bold())
-                    Text("Cursor チャット欄を開く／Cursor へ移動")
+                    KeyComboView(key: "C")
+                    Text("チャット開閉")
+                        .font(.subheadline)
                 }
                 GridRow {
-                    Text("CapsLock を押して T").font(.system(.body, design: .monospaced).bold())
-                    Text("エディタ下のパネルを開閉")
+                    KeyComboView(key: "T")
+                    Text("下パネル開閉")
+                        .font(.subheadline)
                 }
             }
-            .padding(12)
+            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
 
@@ -174,9 +221,20 @@ struct OnboardingView: View {
                 )
             }
 
+            LiveTestBannerView(
+                isEnabled: appState.config.isEnabled,
+                isAccessibilityTrusted: appState.isAccessibilityTrusted,
+                isTapRunning: appState.isTapRunning,
+                isHidutilApplied: appState.isHidutilApplied,
+                isHoldingHyper: appState.isHoldingHyper,
+                hasModifierConflict: !appState.capsLockConflicts.isEmpty,
+                jisEisuuEnabled: appState.config.jisEisuuEnabled,
+                recentFeedbacks: appState.recentFeedbacks
+            )
+
             HStack {
                 Spacer()
-                Button("完了して設定画面へ") {
+                Button("始める") {
                     appState.advanceOnboarding(to: .completed)
                 }
                 .buttonStyle(.borderedProminent)
