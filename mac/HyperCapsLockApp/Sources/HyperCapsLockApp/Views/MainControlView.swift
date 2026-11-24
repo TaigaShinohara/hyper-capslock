@@ -4,27 +4,16 @@ import SwiftUI
 /// メイン設定＆動作確認画面。
 struct MainControlView: View {
     @Bindable var appState: AppState
+    @State private var showOptionalFeatures = false
     @State private var showAdvanced = false
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                headerCard
+            VStack(alignment: .leading, spacing: 14) {
+                headerRow
 
                 if let banner = appState.statusBannerMessage {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text(banner)
-                            .font(.callout)
-                        Spacer()
-                        Button("閉じる") {
-                            appState.statusBannerMessage = nil
-                        }
-                        .buttonStyle(.borderless)
-                    }
-                    .padding(10)
-                    .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                    statusBanner(banner)
                 }
 
                 if !appState.isAccessibilityTrusted {
@@ -39,58 +28,70 @@ struct MainControlView: View {
                     )
                 }
 
-                LiveTestBannerView(
-                    isEnabled: appState.config.isEnabled,
-                    isAccessibilityTrusted: appState.isAccessibilityTrusted,
-                    isTapRunning: appState.isTapRunning,
-                    isHoldingHyper: appState.isHoldingHyper,
-                    hasModifierConflict: !appState.capsLockConflicts.isEmpty,
-                    jisEisuuEnabled: appState.config.jisEisuuEnabled,
-                    modifierHintText: appState.modifierHintText,
-                    recentFeedbacks: appState.recentFeedbacks
-                )
+                if appState.isAccessibilityTrusted {
+                    LiveTestBannerView(
+                        isEnabled: appState.config.isEnabled,
+                        isAccessibilityTrusted: appState.isAccessibilityTrusted,
+                        isTapRunning: appState.isTapRunning,
+                        isHoldingHyper: appState.isHoldingHyper,
+                        hasModifierConflict: !appState.capsLockConflicts.isEmpty,
+                        jisEisuuEnabled: appState.config.jisEisuuEnabled,
+                        recentFeedbacks: appState.recentFeedbacks
+                    )
+                }
 
                 starterSection
                 optionalFeaturesSection
                 advancedSection
             }
-            .padding(20)
+            .padding(18)
         }
-        .frame(width: 580, height: 640)
+        .frame(width: 480, height: 520)
     }
 
-    private var headerCard: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Hyper CapsLock")
-                    .font(.title2.bold())
-                Text("単押しは Esc、押したままで AI 開発コックピット")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+    private var headerRow: some View {
+        HStack {
+            Text("Hyper CapsLock")
+                .font(.title3.bold())
 
             Spacer()
 
-            Toggle("有効にする", isOn: $appState.config.isEnabled)
+            Toggle("Hyper CapsLock を有効にする", isOn: $appState.config.isEnabled)
                 .toggleStyle(.switch)
                 .labelsHidden()
-
-            Text(appState.config.isEnabled ? "ON" : "OFF")
-                .font(.headline)
-                .foregroundStyle(appState.config.isEnabled ? .green : .secondary)
-                .frame(width: 34, alignment: .leading)
         }
+    }
+
+    private func statusBanner(_ message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+            Text(message)
+                .font(.caption)
+            Spacer()
+            Button {
+                appState.statusBannerMessage = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("通知を閉じる")
+        }
+        .padding(10)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var permissionWarningCard: some View {
         HStack(spacing: 12) {
             Image(systemName: "hand.raised.fill")
-                .font(.title3)
                 .foregroundStyle(.orange)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text("アクセシビリティ権限が必要です")
-                    .font(.headline)
-                Text("システム設定で「Hyper CapsLock」を許可すると自動で稼働します。")
+                    .font(.subheadline.weight(.semibold))
+                Text("システム設定で許可すると自動で稼働します")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -99,6 +100,7 @@ struct MainControlView: View {
                 appState.requestAccessibilityPermission()
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.small)
         }
         .padding(12)
         .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
@@ -107,64 +109,72 @@ struct MainControlView: View {
     private var starterSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("1. 基本と往復（スターター）")
+                Text("往復ショートカット")
                     .font(.headline)
                 Spacer()
-                Toggle("スターターを有効", isOn: $appState.config.starterEnabled)
+                Toggle("往復ショートカットを有効にする", isOn: $appState.config.starterEnabled)
                     .toggleStyle(.switch)
+                    .labelsHidden()
             }
 
-            Text("割り当て表：`Hyper+1` エディタ → `Hyper+C` チャット → `Enter` で送信 → `Hyper+2` プレビュー（または `Hyper+T` パネル）")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Divider()
-
-            VStack(spacing: 10) {
-                appPickerRow(slotTitle: "Hyper + 1（エディタ）", selection: $appState.config.slot1App)
-                appPickerRow(slotTitle: "Hyper + 2（プレビュー）", selection: $appState.config.slot2App)
-                appPickerRow(slotTitle: "Hyper + 3（ターミナル）", selection: $appState.config.slot3App)
+            VStack(spacing: 8) {
+                appPickerRow(key: "1", role: "エディタ", selection: $appState.config.slot1App)
+                appPickerRow(key: "2", role: "プレビュー", selection: $appState.config.slot2App)
+                appPickerRow(key: "3", role: "ターミナル", selection: $appState.config.slot3App)
             }
             .disabled(!appState.config.starterEnabled)
-            .opacity(appState.config.starterEnabled ? 1.0 : 0.55)
+            .opacity(appState.config.starterEnabled ? 1.0 : 0.5)
 
             Divider()
 
             HStack(spacing: 16) {
-                Label("Hyper + C：Cursor チャット開閉（別アプリ時は Cursor を前面へ）", systemImage: "bubble.left.and.bubble.right")
-                Spacer()
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    KeyComboView(key: "C")
+                    Text("チャット")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
-            HStack(spacing: 16) {
-                Label("Hyper + T：Cursor / VS Code の下パネル開閉", systemImage: "rectangle.bottomthird.inset.filled")
+                HStack(spacing: 6) {
+                    KeyComboView(key: "T")
+                    Text("下パネル")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Spacer()
+
+                HStack(spacing: 6) {
+                    KeyCapView(label: "単押し")
+                    Text("Esc")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .opacity(appState.config.starterEnabled ? 1.0 : 0.5)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
     }
 
-    private func appPickerRow(slotTitle: String, selection: Binding<AppTarget>) -> some View {
-        HStack {
+    private func appPickerRow(key: String, role: String, selection: Binding<AppTarget>) -> some View {
+        HStack(spacing: 10) {
+            KeyComboView(key: key)
+                .frame(width: 82, alignment: .leading)
+
             Image(nsImage: appState.appIcon(for: selection.wrappedValue))
                 .resizable()
-                .frame(width: 22, height: 22)
+                .frame(width: 20, height: 20)
+                .accessibilityHidden(true)
 
-            Text(slotTitle)
-                .font(.subheadline)
-                .frame(width: 185, alignment: .leading)
-
-            Picker("", selection: selection) {
+            Picker(role, selection: selection) {
                 let choices = pickerChoices(including: selection.wrappedValue)
                 ForEach(choices, id: \.bundleIdentifier) { app in
                     Text(app.name).tag(app)
                 }
             }
             .labelsHidden()
+            .accessibilityLabel("\(role)（CapsLock と \(key)）")
         }
     }
 
@@ -176,54 +186,61 @@ struct MainControlView: View {
         return list
     }
 
+    private var enabledOptionalCount: Int {
+        [
+            appState.config.windowSplitEnabled,
+            appState.config.navigationEnabled,
+            appState.config.jisEisuuEnabled,
+        ].filter { $0 }.count
+    }
+
     private var optionalFeaturesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("2. あとから 1 個ずつ足す機能")
-                .font(.headline)
+        DisclosureGroup(isExpanded: $showOptionalFeatures) {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle(isOn: $appState.config.windowSplitEnabled) {
+                    HStack(spacing: 8) {
+                        Text("ウィンドウ左右分割")
+                            .font(.subheadline)
+                        KeyCapView(label: "Q / W")
+                    }
+                }
 
-            Toggle(isOn: $appState.config.windowSplitEnabled) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("ウィンドウ左右分割（Hyper + Q で左半分 / Hyper + W で右半分）")
+                Toggle(isOn: $appState.config.navigationEnabled) {
+                    HStack(spacing: 8) {
+                        Text("カーソル移動")
+                            .font(.subheadline)
+                        KeyCapView(label: "H J K L")
+                    }
+                }
+
+                Toggle(isOn: $appState.config.jisEisuuEnabled) {
+                    Text("JIS「英数」キーも Hyper にする")
                         .font(.subheadline)
-                    Text("Raycast なしでも動作します。OFF のあいだは Q / W の誤動作を防ぎます。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
-
-            Divider()
-
-            Toggle(isOn: $appState.config.navigationEnabled) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("第 2 弾：カーソル・単語移動（H/J/K/L 矢印、A/E 行頭行末、B/F 単語）")
-                        .font(.subheadline)
-                    Text("ホームポジションから手を動かさずにカーソルを動かせます。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Divider()
-
-            Toggle(isOn: $appState.config.jisEisuuEnabled) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("JIS キーボードの「英数」キーも Hyper にする")
-                        .font(.subheadline)
-                    Text("スペース左の英数キーでも単押し Esc・長押し Hyper が使えます。")
+            .padding(.top, 10)
+        } label: {
+            HStack {
+                Text("追加機能")
+                    .font(.headline)
+                Spacer()
+                if enabledOptionalCount > 0 {
+                    Text("\(enabledOptionalCount) 件 ON")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var advancedSection: some View {
-        DisclosureGroup("詳細・安全設定", isExpanded: $showAdvanced) {
+        DisclosureGroup("詳細設定", isExpanded: $showAdvanced) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("単押しと長押しの境界時間")
+                    Text("長押し判定")
+                        .font(.subheadline)
                     Spacer()
                     Stepper(
                         "\(appState.config.tapThresholdMs) ミリ秒",
@@ -231,43 +248,49 @@ struct MainControlView: View {
                         in: 120...350,
                         step: 20
                     )
+                    .font(.subheadline)
                 }
+
+                Toggle("ログイン時に自動起動", isOn: $appState.config.launchAtLogin)
+                    .font(.subheadline)
 
                 Toggle(isOn: $appState.config.passthroughUnassignedAsFourModifiers) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("未割り当てキーを Cmd+Ctrl+Opt+Shift 付きで他アプリへ渡す（上級者向け）")
-                        Text("OFF（推奨）のあいだは未割り当てキーによる誤終了（Cmd+Q 等）を防ぎます。Hyper+. は常にブロックされます。")
+                        Text("未割り当てキーを他アプリへ渡す")
+                            .font(.subheadline)
+                        Text("OFF 推奨（誤終了を防止）")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                Toggle("Mac へのログイン時に自動で起動する", isOn: $appState.config.launchAtLogin)
-
                 Divider()
 
-                HStack {
-                    Button("初回ガイドをもう一度開く") {
+                HStack(spacing: 8) {
+                    Button("初回ガイド") {
                         appState.reopenOnboarding()
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.small)
 
-                    Spacer()
-
-                    Button("アプリ一覧を再読み込み") {
+                    Button("アプリ再読込") {
                         appState.refreshInstalledApps()
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.small)
 
-                    Button("CapsLock を標準に戻して停止", role: .destructive) {
+                    Spacer()
+
+                    Button("標準に戻して停止", role: .destructive) {
                         appState.emergencyResetCapsLock()
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
             }
             .padding(.top, 10)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
     }
 }
