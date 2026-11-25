@@ -5,9 +5,13 @@ public enum KeyCodeCatalog {
     // MARK: - HID Usage IDs (for hidutil)
     public static let hidCapsLock: UInt64 = 0x700000039
     public static let hidF18: UInt64 = 0x70000006D
+    public static let hidF19: UInt64 = 0x70000006E
+    public static let hidF20: UInt64 = 0x70000006F
 
     // MARK: - Virtual Key Codes (Carbon HIToolbox)
     public static let f18: Int = 79
+    public static let f19: Int = 80
+    public static let f20: Int = 90
     public static let jisEisuu: Int = 102
     public static let escape: Int = 53
     public static let period: Int = 47
@@ -42,7 +46,9 @@ public enum KeyCodeCatalog {
     /// ライブモニター表示用の人間可読なキー名。
     public static func displayName(for keyCode: Int) -> String {
         switch keyCode {
-        case f18: return "CapsLock"
+        case f18: return "F18"
+        case f19: return "F19"
+        case f20: return "F20"
         case jisEisuu: return "英数"
         case escape: return "Esc"
         case period: return "."

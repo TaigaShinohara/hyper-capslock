@@ -1,7 +1,7 @@
 # 割り当て表
 
 このファイルが割り当て表の正本。確認の手順は [確認の手順](TESTING.md)。
-macOS で迷わないため、まずネイティブアプリの権限→Esc確認→往復の順で進める。Karabiner、WindowsのKanata・AutoHotkeyは代替導線。
+macOS で迷わないため、まずネイティブアプリでキーと変更内容を選び、権限を許可してから Esc を試す。Karabiner、WindowsのKanata・AutoHotkeyは代替導線。
 
 Mac と Windows の実機では、まだ押して確認していない。
 

@@ -1,6 +1,6 @@
+import HyperCapsLockCore
 import SwiftUI
 
-/// キー操作を文字の説明ではなく物理キーの形で伝える共通パーツ。
 struct KeyCapView: View {
     let label: String
     var highlighted: Bool = false
@@ -25,20 +25,25 @@ struct KeyCapView: View {
     }
 }
 
-/// CapsLock + 別キーの組み合わせを視覚的に示すバッジ。
+extension HyperTriggerMode {
+    var keyInstructionName: String {
+        self == .capsLockAndEisuu ? "CapsLock または英数" : title
+    }
+}
+
 struct KeyComboView: View {
+    let trigger: HyperTriggerMode
     let key: String
-    var highlighted: Bool = false
 
     var body: some View {
         HStack(spacing: 4) {
-            KeyCapView(label: "Caps", highlighted: highlighted)
+            KeyCapView(label: trigger.keyInstructionName)
             Text("+")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-            KeyCapView(label: key, highlighted: highlighted)
+            KeyCapView(label: key)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("CapsLock と \(key)")
+        .accessibilityLabel("\(trigger.keyInstructionName) を押したまま \(key)")
     }
 }

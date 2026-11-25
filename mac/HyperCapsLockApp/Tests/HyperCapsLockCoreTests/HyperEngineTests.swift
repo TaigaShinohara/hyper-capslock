@@ -16,7 +16,9 @@ struct HyperEngineTests {
             starterEnabled: starter,
             windowSplitEnabled: windowSplit,
             navigationEnabled: navigation,
-            jisEisuuEnabled: jisEisuu,
+            triggerMode: jisEisuu ? .capsLockAndEisuu : .capsLock,
+            chatShortcutEnabled: starter,
+            panelShortcutEnabled: starter,
             passthroughUnassignedAsFourModifiers: passthrough,
             tapThresholdMs: 200
         )
@@ -28,7 +30,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig()
 
         let down = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
         #expect(down.shouldConsume == true)
@@ -36,7 +38,7 @@ struct HyperEngineTests {
         #expect(down.actions.isEmpty)
 
         let up = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1200),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyUp, timestampMs: 1200),
             config: config
         )
         #expect(up.shouldConsume == true)
@@ -54,11 +56,11 @@ struct HyperEngineTests {
         let config = makeDefaultConfig()
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
         let up = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1201),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyUp, timestampMs: 1201),
             config: config
         )
 
@@ -74,11 +76,11 @@ struct HyperEngineTests {
         let config = makeDefaultConfig()
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
         let up = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1200),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyUp, timestampMs: 1200),
             config: config
         )
 
@@ -94,7 +96,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig()
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
         let spaceDown = engine.handle(
@@ -109,7 +111,7 @@ struct HyperEngineTests {
         )
 
         let up = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1120),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyUp, timestampMs: 1120),
             config: config
         )
         #expect(up.actions.isEmpty)
@@ -121,7 +123,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig(windowSplit: false, passthrough: false)
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
 
@@ -146,7 +148,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig(windowSplit: false, passthrough: true)
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
 
@@ -175,7 +177,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig(starter: true)
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
 
@@ -234,7 +236,7 @@ struct HyperEngineTests {
         let config = makeDefaultConfig(starter: true, windowSplit: true, navigation: true)
 
         _ = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyDown, timestampMs: 1000),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000),
             config: config
         )
 
@@ -252,7 +254,7 @@ struct HyperEngineTests {
 
         // Aを離す前にCapsLockを離しても、Command+LeftArrowのkeyUpが安全に送られる
         let capsUp = engine.handle(
-            HyperKeyInput(keyCode: KeyCodeCatalog.f18, kind: .keyUp, timestampMs: 1300),
+            HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyUp, timestampMs: 1300),
             config: config
         )
         #expect(capsUp.actions == [.sendKey(keyCode: KeyCodeCatalog.leftArrow, kind: .keyUp, modifiers: .command)])
@@ -282,5 +284,89 @@ struct HyperEngineTests {
             .sendKey(keyCode: KeyCodeCatalog.escape, kind: .keyDown, modifiers: []),
             .sendKey(keyCode: KeyCodeCatalog.escape, kind: .keyUp, modifiers: []),
         ])
+    }
+
+    @Test("F18 と選択していない予約キーは通過し、英数専用モードは F19 / F20 に触れない")
+    func onlySelectedTriggersAreConsumed() {
+        let engine = HyperEngine()
+        var config = makeDefaultConfig()
+        config.capsLockReservedKey = .f19
+
+        func down(_ keyCode: Int) -> HyperDecision {
+            engine.handle(HyperKeyInput(keyCode: keyCode, kind: .keyDown, timestampMs: 1000), config: config)
+        }
+
+        #expect(!down(KeyCodeCatalog.f18).shouldConsume)
+        #expect(!down(KeyCodeCatalog.f20).shouldConsume)
+        #expect(down(KeyCodeCatalog.f19).shouldConsume)
+        _ = engine.reset()
+
+        config.triggerMode = .eisuu
+        #expect(!down(KeyCodeCatalog.f18).shouldConsume)
+        #expect(!down(KeyCodeCatalog.f19).shouldConsume)
+        #expect(!down(KeyCodeCatalog.f20).shouldConsume)
+        #expect(down(KeyCodeCatalog.jisEisuu).shouldConsume)
+    }
+
+    @Test("C / T を個別にオフにすると未割り当てとして外部に転送できる")
+    func disabledEditorShortcutsUseUnassignedPolicy() {
+        let engine = HyperEngine()
+        var config = makeDefaultConfig(passthrough: true)
+        config.chatShortcutEnabled = false
+        config.panelShortcutEnabled = false
+        _ = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000), config: config)
+        for keyCode in [KeyCodeCatalog.c, KeyCodeCatalog.t] {
+            let decision = engine.handle(
+                HyperKeyInput(keyCode: keyCode, kind: .keyDown, timestampMs: 1010, frontmostBundleIdentifier: KeyCodeCatalog.cursorBundleID),
+                config: config
+            )
+            #expect(decision.actions == [.sendKey(keyCode: keyCode, kind: .keyDown, modifiers: .hyperFour)])
+        }
+    }
+
+    @Test("Hyper を保持していても F18 と使っていない予約キーを変換しない")
+    func otherFunctionKeysKeepTheirAssignmentsDuringHyper() {
+        let engine = HyperEngine()
+        var config = makeDefaultConfig(passthrough: true)
+        config.capsLockReservedKey = .f19
+        _ = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.f19, kind: .keyDown, timestampMs: 1000), config: config)
+
+        for keyCode in [KeyCodeCatalog.f18, KeyCodeCatalog.f20] {
+            let decision = engine.handle(
+                HyperKeyInput(keyCode: keyCode, kind: .keyDown, timestampMs: 1010), config: config
+            )
+            #expect(!decision.shouldConsume && decision.actions.isEmpty)
+        }
+
+        let release = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.f19, kind: .keyUp, timestampMs: 1040), config: config)
+        #expect(release.actions.isEmpty)
+    }
+
+    @Test("数字ショートカットを使わなくてもエディタ操作を個別に有効にできる")
+    func editorShortcutsDoNotDependOnNumericShortcuts() {
+        let engine = HyperEngine()
+        var config = makeDefaultConfig(starter: false)
+        config.chatShortcutEnabled = true
+        _ = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000), config: config)
+        let chat = engine.handle(
+            HyperKeyInput(keyCode: KeyCodeCatalog.c, kind: .keyDown, timestampMs: 1010, frontmostBundleIdentifier: KeyCodeCatalog.cursorBundleID),
+            config: config
+        )
+        #expect(chat.actions == [.sendKey(keyCode: KeyCodeCatalog.l, kind: .keyDown, modifiers: .command)])
+        let number = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.num1, kind: .keyDown, timestampMs: 1020), config: config)
+        #expect(number.actions == [.blocked(reason: "未割り当てキーを安全ガード", inputKeyCode: KeyCodeCatalog.num1)])
+    }
+
+    @Test("初回の数字キー試用は 1 だけを有効にする")
+    func onlySlotOneActivatesDuringTrial() {
+        let engine = HyperEngine()
+        var config = makeDefaultConfig()
+        config.onboardingStep = .starter
+        _ = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.f20, kind: .keyDown, timestampMs: 1000), config: config)
+
+        let first = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.num1, kind: .keyDown, timestampMs: 1010), config: config)
+        let second = engine.handle(HyperKeyInput(keyCode: KeyCodeCatalog.num2, kind: .keyDown, timestampMs: 1020), config: config)
+        #expect(first.actions == [.activateApp(config.slot1App)])
+        #expect(second.actions == [.blocked(reason: "未割り当てキーを安全ガード", inputKeyCode: KeyCodeCatalog.num2)])
     }
 }

@@ -24,11 +24,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showMainWindow()
     }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let appState, !appState.prepareToQuit() else { return .terminateNow }
+
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "キー割り当てを復元できませんでした"
+        let detail = appState.runtimeStatus.detail ?? ""
+        alert.informativeText = "\(detail)\n終了する場合も復元記録は保持します。次に起動したときに再確認します。"
+        alert.addButton(withTitle: "終了せず確認")
+        alert.addButton(withTitle: "復元を保留して終了")
+        if alert.runModal() == .alertSecondButtonReturn {
+            return .terminateNow
+        }
+        showMainWindow()
+        return .terminateCancel
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         if let closeObserver {
             NotificationCenter.default.removeObserver(closeObserver)
         }
-        appState?.shutdownSafely()
+        appState?.finishTermination()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -56,6 +75,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             let closingIsMain = closingWindow.identifier?.rawValue == "main" || closingWindow.title == "Hyper CapsLock"
             if closingIsMain && !hasVisibleMain {
+                if let appState = self.appState, appState.config.onboardingStep != .completed {
+                    appState.restartTrialSetup()
+                }
                 NSApp.setActivationPolicy(.accessory)
             }
         }
@@ -93,16 +115,16 @@ struct HyperCapsLockApp: App {
             }
         } label: {
             Image(systemName: menuBarSymbolName)
+                .accessibilityLabel("Hyper CapsLock、\(appState.runtimeStatus.title)")
         }
     }
 
     private var menuBarSymbolName: String {
-        if !appState.config.isEnabled {
-            return "capslock"
+        switch appState.runtimeStatus {
+        case .stopped: "capslock"
+        case .waitingForPermission, .blocked, .restorationFailed: "exclamationmark.triangle"
+        case .waitingForInput: "capslock"
+        case .running: appState.isHoldingHyper ? "command.square.fill" : "capslock.fill"
         }
-        if !appState.isAccessibilityTrusted {
-            return "exclamationmark.triangle"
-        }
-        return appState.isHoldingHyper ? "command.square.fill" : "capslock.fill"
     }
 }

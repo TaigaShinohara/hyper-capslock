@@ -159,19 +159,19 @@ public final class HyperEngine: @unchecked Sendable {
             return HyperDecision(shouldConsume: false, actions: [], isHoldingHyper: false)
         }
 
+        if input.keyCode == KeyCodeCatalog.f18 || input.keyCode == KeyCodeCatalog.f19 || input.keyCode == KeyCodeCatalog.f20 {
+            if input.kind == .keyDown { hasPressedOtherKey = true }
+            return HyperDecision(shouldConsume: false, isHoldingHyper: true)
+        }
+
         return handleKeyWhileHolding(input, config: config)
     }
 
     // MARK: - Private
 
     private func isTriggerKey(_ keyCode: Int, config: HyperConfig) -> Bool {
-        if keyCode == KeyCodeCatalog.f18 {
-            return true
-        }
-        if config.jisEisuuEnabled && keyCode == KeyCodeCatalog.jisEisuu {
-            return true
-        }
-        return false
+        (config.triggerMode.usesCapsLock && keyCode == config.capsLockReservedKey.keyCode)
+            || (config.triggerMode.usesEisuu && keyCode == KeyCodeCatalog.jisEisuu)
     }
 
     private func handleTriggerEvent(_ input: HyperKeyInput, config: HyperConfig) -> HyperDecision {
@@ -207,7 +207,7 @@ public final class HyperEngine: @unchecked Sendable {
                 actions.append(.sendKey(keyCode: KeyCodeCatalog.escape, kind: .keyUp, modifiers: []))
                 feedback = HyperFeedbackEvent(
                     summary: "単押し → Esc",
-                    detail: "\(KeyCodeCatalog.displayName(for: input.keyCode))（\(max(0, elapsed))ms）",
+                    detail: "Esc を送信（\(max(0, elapsed))ms）",
                     isSuccess: true,
                     isEscTap: true
                 )
@@ -248,10 +248,8 @@ public final class HyperEngine: @unchecked Sendable {
         }
 
         // 2. 往復スターター
-        if config.starterEnabled {
-            if let decision = handleStarterKey(input, config: config) {
-                return decision
-            }
+        if let decision = handleStarterKey(input, config: config) {
+            return decision
         }
 
         // 3. ウィンドウ左右分割
@@ -318,7 +316,7 @@ public final class HyperEngine: @unchecked Sendable {
 
     private func handleStarterKey(_ input: HyperKeyInput, config: HyperConfig) -> HyperDecision? {
         switch input.keyCode {
-        case KeyCodeCatalog.c:
+        case KeyCodeCatalog.c where config.chatShortcutEnabled:
             let frontID = input.frontmostBundleIdentifier
             if frontID == KeyCodeCatalog.cursorBundleID {
                 let mode = InterceptedKeyMode.mappedKey(outputKeyCode: KeyCodeCatalog.l, modifiers: .command)
@@ -328,7 +326,7 @@ public final class HyperEngine: @unchecked Sendable {
                     actions: [.sendKey(keyCode: KeyCodeCatalog.l, kind: .keyDown, modifiers: .command)],
                     isHoldingHyper: true,
                     feedback: input.isAutorepeat ? nil : HyperFeedbackEvent(
-                        summary: "Hyper+C → Cursor チャット開閉",
+                        summary: "Hyper+C → Cursor に ⌘L を送信",
                         detail: "Command+L を送信",
                         isSuccess: true
                     )
@@ -343,14 +341,14 @@ public final class HyperEngine: @unchecked Sendable {
                     actions: [.activateApp(config.slot1App)],
                     isHoldingHyper: true,
                     feedback: HyperFeedbackEvent(
-                        summary: "Hyper+C → \(config.slot1App.name) を前面へ",
-                        detail: "別アプリ前面のため移動のみ実行（誤操作防止）",
+                        summary: "Hyper+C → \(config.slot1App.name) に切り替えを要求",
+                        detail: "Cursor が前面にない場合の動作",
                         isSuccess: true
                     )
                 )
             }
 
-        case KeyCodeCatalog.t:
+        case KeyCodeCatalog.t where config.panelShortcutEnabled:
             let frontID = input.frontmostBundleIdentifier
             if frontID == KeyCodeCatalog.cursorBundleID || frontID == KeyCodeCatalog.vsCodeBundleID {
                 let mode = InterceptedKeyMode.mappedKey(outputKeyCode: KeyCodeCatalog.j, modifiers: .command)
@@ -360,7 +358,7 @@ public final class HyperEngine: @unchecked Sendable {
                     actions: [.sendKey(keyCode: KeyCodeCatalog.j, kind: .keyDown, modifiers: .command)],
                     isHoldingHyper: true,
                     feedback: input.isAutorepeat ? nil : HyperFeedbackEvent(
-                        summary: "Hyper+T → パネル開閉",
+                        summary: "Hyper+T → ⌘J を送信",
                         detail: "Command+J を送信",
                         isSuccess: true
                     )
@@ -375,7 +373,7 @@ public final class HyperEngine: @unchecked Sendable {
                     actions: [.blocked(reason: "エディタ以外のため Hyper+T を無視", inputKeyCode: input.keyCode)],
                     isHoldingHyper: true,
                     feedback: HyperFeedbackEvent(
-                        summary: "Hyper+T（エディタ以外では無効）",
+                        summary: "Hyper+T（Cursor / VS Code 以外では無効）",
                         detail: "他アプリへの誤送信を防止",
                         isSuccess: true
                     )
@@ -383,6 +381,8 @@ public final class HyperEngine: @unchecked Sendable {
             }
 
         case KeyCodeCatalog.num1, KeyCodeCatalog.num2, KeyCodeCatalog.num3:
+            guard config.starterEnabled else { return nil }
+            if config.onboardingStep == .starter && input.keyCode != KeyCodeCatalog.num1 { return nil }
             activeInterceptedKeys[input.keyCode] = .consumedOnly
             if input.isAutorepeat {
                 return HyperDecision(shouldConsume: true, isHoldingHyper: true)
@@ -399,7 +399,7 @@ public final class HyperEngine: @unchecked Sendable {
                 actions: [.activateApp(target)],
                 isHoldingHyper: true,
                 feedback: HyperFeedbackEvent(
-                    summary: "Hyper+\(slot) → \(target.name)",
+                    summary: "Hyper+\(slot) → \(target.name) に切り替えを要求",
                     detail: "アプリを前面へ切り替え",
                     isSuccess: true
                 )

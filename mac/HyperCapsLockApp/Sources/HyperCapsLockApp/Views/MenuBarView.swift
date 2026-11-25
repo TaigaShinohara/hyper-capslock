@@ -1,43 +1,35 @@
+import HyperCapsLockCore
 import SwiftUI
 
-/// メニューバー常駐メニューの内容。
 struct MenuBarView: View {
-    @Bindable var appState: AppState
+    var appState: AppState
     let openMainWindow: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(statusSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        Text("\(appState.runtimeStatus.title) · \(appState.config.triggerMode.title)")
+        Divider()
 
-            Divider()
-
-            Button(appState.config.isEnabled ? "一時停止" : "再開") {
-                appState.toggleEnabled()
+        switch appState.runtimeStatus {
+        case .running, .waitingForInput:
+            Button("一時停止", action: appState.stop)
+        case .restorationFailed:
+            Button("復元を再試行", action: appState.stop)
+        case .stopped, .blocked:
+            if appState.canResumeFromMenu {
+                Button("再開", action: appState.resumeFromMenu)
             }
-
-            Button("設定を開く") {
-                openMainWindow()
-            }
-
-            if !appState.isAccessibilityTrusted {
-                Button("アクセシビリティを許可...") {
-                    appState.requestAccessibilityPermission()
-                }
-            }
-
-            Divider()
-
-            Button("標準に戻して終了") {
-                appState.quitAndRestore()
-            }
+        case .waitingForPermission:
+            EmptyView()
         }
-    }
 
-    private var statusSummary: String {
-        if !appState.config.isEnabled { return "一時停止中" }
-        if !appState.isAccessibilityTrusted { return "権限待ち" }
-        return appState.isTapRunning ? "稼働中" : "準備中"
+        Button(appState.config.onboardingStep == .completed ? "設定を開く" : "セットアップを開く", action: openMainWindow)
+
+        if !appState.isAccessibilityTrusted {
+            Button("アクセシビリティを許可…", action: appState.requestAccessibilityPermission)
+        }
+
+        Divider()
+
+        Button("停止して終了", action: appState.quitAndRestore)
     }
 }
