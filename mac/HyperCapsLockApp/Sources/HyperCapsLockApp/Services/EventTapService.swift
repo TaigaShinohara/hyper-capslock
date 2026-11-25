@@ -19,6 +19,7 @@ final class EventTapService: @unchecked Sendable {
     private var runLoopSource: CFRunLoopSource?
     private let eventSource = CGEventSource(stateID: .hidSystemState)
 
+    var onTriggerPressStarted: (@Sendable () -> Void)?
     var onDecisionFeedback: (@Sendable (Bool, HyperFeedbackEvent?) -> Void)?
     var onActivateApp: (@Sendable (AppTarget, Bool) -> Void)?
     var onSnapWindow: (@Sendable (WindowSnapSide) -> Void)?
@@ -155,13 +156,18 @@ final class EventTapService: @unchecked Sendable {
             frontmostBundleIdentifier: frontBundleID,
             modifierBits: event.flags.rawValue
         )
+        let wasHolding = engine.isHolding
         let decision = engine.handle(input, config: config)
+        let shouldPlayTriggerSound = config.onboardingStep == .completed && config.companionSoundEnabled
+            && !wasHolding && engine.isHolding
         let outputTag = decision.feedback?.isEscTap == true ? escapeTestTag : Self.syntheticEventTag
         lock.unlock()
 
         if !decision.actions.isEmpty {
             executeActions(decision.actions, outputTag: outputTag, fromSlotOne: keyCode == KeyCodeCatalog.num1)
         }
+
+        if shouldPlayTriggerSound { onTriggerPressStarted?() }
 
         if decision.feedback != nil || decision.shouldConsume {
             onDecisionFeedback?(decision.isHoldingHyper, decision.feedback)

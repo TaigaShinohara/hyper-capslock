@@ -52,6 +52,10 @@ final class AppState {
         didSet {
             saveConfig()
             syncEventTapConfig()
+            if config.companionSoundEnabled != oldValue.companionSoundEnabled {
+                companionSoundService.setEnabled(config.companionSoundEnabled)
+                if config.companionSoundEnabled { previewCompanionSound() }
+            }
             if config.launchAtLogin != oldValue.launchAtLogin {
                 applyLaunchAtLogin(config.launchAtLogin)
             }
@@ -81,6 +85,7 @@ final class AppState {
     private let eventTapService = EventTapService()
     private let windowManager = WindowManagerService()
     private let appDiscovery = AppDiscoveryService()
+    private let companionSoundService = CompanionSoundService()
     private var permissionTimer: Timer?
     private var workspaceObservers: [NSObjectProtocol] = []
     private var localKeyMonitor: Any?
@@ -249,6 +254,7 @@ final class AppState {
     func stop() {
         if config.isEnabled { config.isEnabled = false }
         eventTapService.stop()
+        companionSoundService.stopPlayback()
         isHoldingHyper = false
         isTriggerVerified = false
         escapeTestTag = nil
@@ -326,6 +332,10 @@ final class AppState {
         }
     }
 
+    func previewCompanionSound() {
+        companionSoundService.playTriggerVoice(ignoringEnabledFlag: true)
+    }
+
     func quitAndRestore() {
         NSApp.terminate(nil)
     }
@@ -398,6 +408,12 @@ final class AppState {
     private func wireCallbacks() {
         eventTapService.updateFrontmostBundleIdentifier(NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
         syncEventTapConfig()
+        companionSoundService.setEnabled(config.companionSoundEnabled)
+
+        let soundService = companionSoundService
+        eventTapService.onTriggerPressStarted = {
+            soundService.playTriggerVoice()
+        }
 
         eventTapService.onDecisionFeedback = { [weak self] holding, feedback in
             Task { @MainActor [weak self] in

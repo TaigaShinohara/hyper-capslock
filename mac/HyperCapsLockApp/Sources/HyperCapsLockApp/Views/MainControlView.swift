@@ -25,6 +25,7 @@ struct MainControlView: View {
                     triggerSection
                     starterSection
                     editorSection
+                    companionSoundSection
                     optionalFeaturesSection
                     advancedSection
                 }
@@ -128,6 +129,44 @@ struct MainControlView: View {
             .accessibilityHint("Cursor または VS Code に Command + J を送ります。")
         }
         .padding(14)
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var companionSoundSection: some View {
+        HStack(spacing: 12) {
+            Image(systemName: appState.config.companionSoundEnabled ? "waveform.circle.fill" : "speaker.slash.circle")
+                .font(.title3)
+                .foregroundStyle(appState.config.companionSoundEnabled ? Color.accentColor : Color.secondary)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("相棒の声")
+                    .font(.subheadline.weight(.semibold))
+                Text("キー変換中に \(appState.config.triggerMode.keyInstructionName) を押すと鳴ります。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+
+            Button {
+                appState.previewCompanionSound()
+            } label: {
+                Image(systemName: "speaker.wave.2")
+                    .font(.caption)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("相棒の声を試聴する")
+            .accessibilityLabel("相棒の声を試聴する")
+
+            Toggle("相棒の声を有効にする", isOn: $appState.config.companionSoundEnabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
     }
 
