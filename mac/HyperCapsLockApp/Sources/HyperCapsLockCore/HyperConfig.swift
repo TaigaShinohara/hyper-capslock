@@ -63,6 +63,7 @@ public struct HyperConfig: Codable, Equatable, Sendable {
     public var passthroughUnassignedAsFourModifiers: Bool
     public var tapThresholdMs: Int
     public var launchAtLogin: Bool
+    public var companionSoundEnabled: Bool
 
     public var slot1App: AppTarget
     public var slot2App: AppTarget
@@ -81,6 +82,7 @@ public struct HyperConfig: Codable, Equatable, Sendable {
         passthroughUnassignedAsFourModifiers: Bool = false,
         tapThresholdMs: Int = 200,
         launchAtLogin: Bool = false,
+        companionSoundEnabled: Bool = true,
         slot1App: AppTarget = AppTarget(
             name: "Cursor",
             bundleIdentifier: KeyCodeCatalog.cursorBundleID,
@@ -109,6 +111,7 @@ public struct HyperConfig: Codable, Equatable, Sendable {
         self.passthroughUnassignedAsFourModifiers = passthroughUnassignedAsFourModifiers
         self.tapThresholdMs = tapThresholdMs
         self.launchAtLogin = launchAtLogin
+        self.companionSoundEnabled = companionSoundEnabled
         self.slot1App = slot1App
         self.slot2App = slot2App
         self.slot3App = slot3App
@@ -143,6 +146,9 @@ public struct HyperConfig: Codable, Equatable, Sendable {
             ) ?? defaults.passthroughUnassignedAsFourModifiers,
             tapThresholdMs: try values.decodeIfPresent(Int.self, forKey: .tapThresholdMs) ?? defaults.tapThresholdMs,
             launchAtLogin: try values.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? defaults.launchAtLogin,
+            companionSoundEnabled: try values.decodeIfPresent(
+                Bool.self, forKey: .companionSoundEnabled
+            ) ?? defaults.companionSoundEnabled,
             slot1App: try values.decodeIfPresent(AppTarget.self, forKey: .slot1App) ?? defaults.slot1App,
             slot2App: try values.decodeIfPresent(AppTarget.self, forKey: .slot2App) ?? defaults.slot2App,
             slot3App: try values.decodeIfPresent(AppTarget.self, forKey: .slot3App) ?? defaults.slot3App
