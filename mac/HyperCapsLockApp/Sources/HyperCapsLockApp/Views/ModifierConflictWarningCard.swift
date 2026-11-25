@@ -23,16 +23,16 @@ struct ModifierConflictWarningCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text("キーボード設定 → ショートカット → 修飾キー で CapsLock を標準に戻してください。")
+                Text("現在の割り当てはそのまま使えます。別のキーボードか JIS 英数を選ぶか、有効化を見送れます。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 8) {
-                Button("キーボード設定を開く") {
+                Button("macOS の設定を確認") {
                     onOpenKeyboardSettings()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 .controlSize(.small)
 
                 Button("再確認") {

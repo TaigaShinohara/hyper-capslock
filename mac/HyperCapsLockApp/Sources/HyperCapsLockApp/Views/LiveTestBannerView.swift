@@ -1,80 +1,95 @@
 import HyperCapsLockCore
 import SwiftUI
 
-/// 押したキーの反応をリアルタイムに示すコンパクトなライブモニター。
 struct LiveTestBannerView: View {
-    let isEnabled: Bool
-    let isAccessibilityTrusted: Bool
-    let isTapRunning: Bool
-    let isHidutilApplied: Bool
-    let isHoldingHyper: Bool
-    let hasModifierConflict: Bool
-    let jisEisuuEnabled: Bool
-    let recentFeedbacks: [HyperFeedbackEvent]
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var appState: AppState
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             Circle()
                 .fill(statusColor)
                 .frame(width: 9, height: 9)
+                .padding(.top, 5)
                 .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(primaryText)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(appState.runtimeStatus.title) · \(appState.config.triggerMode.title)")
                     .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-
-                if let secondary = secondaryText {
-                    Text(secondary)
+                if let description {
+                    Text(description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            Spacer()
-
-            KeyCapView(label: isHoldingHyper ? "HYPER" : "Caps", highlighted: isHoldingHyper)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(12)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isHoldingHyper)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: recentFeedbacks.first?.id)
         .accessibilityElement(children: .combine)
     }
 
     private var statusColor: Color {
-        if !isEnabled { return .secondary }
-        if !isAccessibilityTrusted || !isTapRunning || !isHidutilApplied || hasModifierConflict { return .orange }
-        if isHoldingHyper { return .accentColor }
-        return .green
+        switch appState.runtimeStatus {
+        case .running: .green
+        case .waitingForPermission, .waitingForInput, .blocked: .orange
+        case .restorationFailed: .red
+        case .stopped: .secondary
+        }
     }
 
-    private var primaryText: String {
-        if !isEnabled { return "一時停止中" }
-        if !isAccessibilityTrusted { return "権限の許可待ち" }
-        if !isTapRunning { return "準備中..." }
-        if !isHidutilApplied { return "CapsLock の変換に失敗" }
-        if isHoldingHyper { return "次のキーを押してください" }
-        if let latest = recentFeedbacks.first {
-            return latest.summary
+    private var description: String? {
+        let status = appState.runtimeStatus
+        switch status {
+        case .running:
+            if appState.isHoldingHyper {
+                return "トリガーキーを長押し中。組み合わせるキーを押せます。"
+            }
+            if let feedback = appState.recentFeedbacks.first {
+                return "\(feedback.summary)（\(feedback.detail)）"
+            }
+            return "トリガーキーを短く押すと Esc。押したまま別のキーでショートカットを使えます。"
+        case .waitingForInput, .waitingForPermission, .stopped, .blocked, .restorationFailed:
+            return status.detail
         }
-        if hasModifierConflict {
-            return jisEisuuEnabled ? "英数キーで稼働中" : "修飾キー設定を確認"
-        }
-        return "稼働中"
     }
+}
 
-    private var secondaryText: String? {
-        if !isEnabled { return "CapsLock は標準動作" }
-        if !isAccessibilityTrusted || !isTapRunning || !isHidutilApplied { return nil }
-        if isHoldingHyper { return "長押し中" }
-        if let latest = recentFeedbacks.first {
-            return latest.detail
+struct RuntimeIssueActionsView: View {
+    var appState: AppState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(appState.runtimeIssues) { issue in
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(issue.title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(issue.detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            switch appState.runtimeStatus {
+            case .restorationFailed:
+                HStack {
+                    Button("復元を再試行", action: appState.stop)
+                    Button("キーボード設定を開く", action: appState.openKeyboardModifierSettings)
+                    Button("手順を見る", action: appState.openSetupGuide)
+                }
+            case .waitingForPermission:
+                Button("アクセシビリティを許可", action: appState.requestAccessibilityPermission)
+            case .blocked:
+                HStack {
+                    Button("設定を再確認", action: appState.retryRuntime)
+                    Button("手順を見る", action: appState.openSetupGuide)
+                }
+            default:
+                if !appState.runtimeIssues.isEmpty {
+                    Button("手順を見る", action: appState.openSetupGuide)
+                }
+            }
         }
-        return "CapsLock を押すと反応を表示"
     }
 }
