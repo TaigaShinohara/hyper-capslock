@@ -11,7 +11,7 @@ struct ModifierConflictWarningCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(AppTheme.orange)
                     .accessibilityHidden(true)
                 Text("CapsLock が別キーに割り当てられています")
                     .font(.subheadline.weight(.semibold))
@@ -44,6 +44,6 @@ struct ModifierConflictWarningCard: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+        .background(AppTheme.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
     }
 }

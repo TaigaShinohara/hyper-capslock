@@ -34,10 +34,12 @@ struct MainControlView: View {
             }
         }
         .frame(width: 540, height: 600)
+        .tint(AppTheme.teal)
     }
 
     private var header: some View {
         HStack {
+            KeyMarkView()
             Text("Hyper CapsLock")
                 .font(.title2.bold())
 
@@ -81,7 +83,7 @@ struct MainControlView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private var starterSection: some View {
@@ -98,7 +100,7 @@ struct MainControlView: View {
                 .controlSize(.small)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private var editorSection: some View {
@@ -129,14 +131,14 @@ struct MainControlView: View {
             .accessibilityHint("Cursor または VS Code に Command + J を送ります。")
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private var companionSoundSection: some View {
         HStack(spacing: 12) {
             Image(systemName: appState.config.companionSoundEnabled ? "waveform.circle.fill" : "speaker.slash.circle")
                 .font(.title3)
-                .foregroundStyle(appState.config.companionSoundEnabled ? Color.accentColor : Color.secondary)
+                .foregroundStyle(appState.config.companionSoundEnabled ? AppTheme.teal : Color.secondary)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -167,7 +169,7 @@ struct MainControlView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private var optionalFeaturesSection: some View {
@@ -190,7 +192,7 @@ struct MainControlView: View {
             .padding(.top, 10)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private var advancedSection: some View {
@@ -231,7 +233,7 @@ struct MainControlView: View {
             .padding(.top, 10)
         }
         .padding(14)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
     }
 
     private func shortcutDescription(_ title: String, keys: String, detail: String) -> some View {

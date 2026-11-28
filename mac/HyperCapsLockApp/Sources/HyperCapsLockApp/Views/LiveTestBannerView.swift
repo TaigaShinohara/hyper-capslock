@@ -25,14 +25,14 @@ struct LiveTestBannerView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
+        .cockpitCardSurface()
         .accessibilityElement(children: .combine)
     }
 
     private var statusColor: Color {
         switch appState.runtimeStatus {
-        case .running: .green
-        case .waitingForPermission, .waitingForInput, .blocked: .orange
+        case .running: AppTheme.teal
+        case .waitingForPermission, .waitingForInput, .blocked: AppTheme.orange
         case .restorationFailed: .red
         case .stopped: .secondary
         }
