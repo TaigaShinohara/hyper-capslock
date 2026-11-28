@@ -11,17 +11,17 @@ struct KeyCapView: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(
-                highlighted ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.07),
+                highlighted ? AppTheme.key : AppTheme.pale,
                 in: RoundedRectangle(cornerRadius: 6)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
                     .strokeBorder(
-                        highlighted ? Color.accentColor.opacity(0.55) : Color.primary.opacity(0.16),
+                        highlighted ? AppTheme.orange : AppTheme.navy.opacity(0.25),
                         lineWidth: 1
                     )
             )
-            .foregroundStyle(highlighted ? Color.accentColor : .primary)
+            .foregroundStyle(highlighted ? AppTheme.yellow : AppTheme.key)
     }
 }
 

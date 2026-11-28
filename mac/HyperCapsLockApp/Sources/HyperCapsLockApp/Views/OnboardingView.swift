@@ -7,8 +7,11 @@ struct OnboardingView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Hyper CapsLock")
-                    .font(.title2.bold())
+                HStack(spacing: 10) {
+                    KeyMarkView()
+                    Text("Hyper CapsLock")
+                        .font(.title2.bold())
+                }
                 stepIndicator
             }
             .padding(20)
@@ -36,6 +39,7 @@ struct OnboardingView: View {
                 .padding(20)
         }
         .frame(width: 540, height: 600)
+        .tint(AppTheme.teal)
     }
 
     private var stepIndicator: some View {
@@ -94,7 +98,7 @@ struct OnboardingView: View {
             switch appState.runtimeStatus {
             case .running where appState.isTriggerVerified:
                 Label("Esc の反応を確認しました", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(AppTheme.teal)
             case .waitingForInput, .running:
                 VStack(alignment: .leading, spacing: 8) {
                     KeyCapView(label: appState.config.triggerMode.keyInstructionName, highlighted: true)
@@ -134,7 +138,7 @@ struct OnboardingView: View {
             if appState.isStarterTrialEnabled, trialIsReady {
                 if appState.isStarterTestVerified {
                     Label("\(appState.config.slot1App.name) が前面にあることを確認しました", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(AppTheme.teal)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("\(appState.config.triggerMode.keyInstructionName) を押したまま 1 を押します。\(appState.config.slot1App.name) が開いたら、この画面に戻ってください。")
